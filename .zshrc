@@ -315,8 +315,13 @@ alias eclipse=/opt/eclipse/eclipse
 export PATH="/snap/bin:$PATH"
 export PATH=$PATH:/opt/modelsim_ase/bin
 
+export ZSH="/home/ivan/.oh-my-zsh"
+
 # Plugins
-#source /usr/share/zsh-plugins/sudo.plugin.zsh
+plugins=(
+    git
+)
+# source /usr/share/zsh-plugins/sudo.plugin.zsh
 
 function zle-keymap-select {
   if [[ $KEYMAP == vicmd ]] || [[ $1 = 'block' ]]; then
@@ -362,4 +367,4 @@ export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
 ZSH_THEME="powerlevel10k/powerlevel10k"
 source ~/powerlevel10k/powerlevel10k.zsh-theme
 
-plugins=(git)
+
