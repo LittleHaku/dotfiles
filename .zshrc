@@ -317,11 +317,25 @@ export PATH=$PATH:/opt/modelsim_ase/bin
 
 export ZSH="/home/ivan/.oh-my-zsh"
 
+
+
 # Plugins
 plugins=(
     git
+    dotenv
+    # https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
+    zsh-syntax-highlighting
+    # https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
+    # Se avanza con la flecha
+    zsh-autosuggestions
+    # h: history, hs: history grep
+    history
+    # dos esc ponen sudo
+    sudo
 )
 # source /usr/share/zsh-plugins/sudo.plugin.zsh
+source $ZSH/oh-my-zsh.sh
+
 
 function zle-keymap-select {
   if [[ $KEYMAP == vicmd ]] || [[ $1 = 'block' ]]; then
@@ -366,5 +380,3 @@ export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
 
 ZSH_THEME="powerlevel10k/powerlevel10k"
 source ~/powerlevel10k/powerlevel10k.zsh-theme
-
-
