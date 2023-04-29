@@ -1,5 +1,11 @@
 # dotfiles
 
+## Current
+- Apps: Colloid-Dark
+- Cursor: Sanity-Cursor
+- Icons: Tela purple theme
+- Shell: Colloid-Dark1
+
 
 ## STOW Instructions
 
