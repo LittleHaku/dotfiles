@@ -6,6 +6,13 @@
 - Icons: Tela purple theme
 - Shell: Colloid-Dark1
 
+## Gnome settings:
+
+Save:
+`dconf dump / > gnome-settings.ini`
+
+Load:
+`dconf load / < dconf-settings.ini`
 
 ## STOW Instructions
 
