@@ -6,8 +6,57 @@
 - Icons: Tela purple theme
 - Shell: Colloid-Dark1
 
+## Keybinds
+
+- super+0..9: desktop
+- super+w: rename desktop
+- super+enter: new terminal
+- alt+space: search bar
+- ctrl+s: tmux leader
+
 ## ZSH
+
 https://www.youtube.com/watch?v=MSPu-lYF-A8
+
+## TMUX
+
+### Panes
+
+- **new pane vertical**: `leader+%`
+- **new pane horizontal**: `leader+"`
+- **close pane**: `leader+x` or `ctrl+d`
+- **move around panes**: `leader+h,j,k,l` (vim style)
+- **rotate panes**: `leader+space`
+- **master navigate**: `leader+w`
+
+### Windows
+
+- **new window**: `leader+c`
+- **close window**: `leader+&`
+- **rename window**: `leader+,`
+- **go to window n**: `leader+0..9`
+- **go to next window**: `leader+n`
+- **go to previous window**: `leader+p`
+- **go to last window**: `leader+l` (ahora no va x haber puesto lo de vim)
+- **master navigate**: `leader+w`
+
+### Sessions
+
+- **list sessions**: `tmux ls`
+- **rename session**: `leader+$`
+- **dettach**: `leader+d`
+- **new session with name**: `tmux new -s nombre`
+- **attach**: `tmux attach -t nombre` o `tmux a -t nombre`
+- **attack to last session**: `tmux attach` o `tmux a`
+- **show all sessions** `leader+s`
+- **close session** `tmux kill-ses -t nombre`
+- **close all except current** `tmux kill-ses -a`
+- **close all except name** `tmux kill-ses -a -t nombre`
+
+
+### Others
+
+- **reload config**: `leader+r`
 
 ## Gnome settings:
 
