@@ -6,6 +6,13 @@
 - Icons: Tela purple theme
 - Shell: (modded) catppuccin-mocha
 
+## Screenshots
+
+![desktop1](/screenshots/w1.png)
+![desktop2](/screenshots/w2.png)
+![desktop3](/screenshots/w3.png)
+![desktop4](/screenshots/w4.png)
+
 ## Keybinds
 
 - super+0..9: desktop
