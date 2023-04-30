@@ -5,6 +5,8 @@
 - Cursor: Sanity-Cursor
 - Icons: Tela purple theme
 - Shell: (modded) catppuccin-mocha
+- Chrome: Catppuccin Chrome Theme - Mocha
+
 
 ## Screenshots
 
