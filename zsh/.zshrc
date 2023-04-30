@@ -339,6 +339,8 @@ plugins=(
     sudo
     # poner z y la carpeta a la que queremos ir, se va acordando
     z
+    # simplifica tmux
+    tmux
 )
 # source /usr/share/zsh-plugins/sudo.plugin.zsh
 source $ZSH/oh-my-zsh.sh

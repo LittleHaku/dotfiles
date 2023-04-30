@@ -42,16 +42,17 @@ https://www.youtube.com/watch?v=MSPu-lYF-A8
 
 ### Sessions
 
-- **list sessions**: `tmux ls`
+- **list sessions**: `tmux ls` o con zsh `tl`
 - **rename session**: `leader+$`
 - **dettach**: `leader+d`
-- **new session with name**: `tmux new -s nombre`
-- **attach**: `tmux attach -t nombre` o `tmux a -t nombre`
+- **new session with name**: `tmux new -s nombre` o `ts`
+- **attach**: `tmux attach -t nombre` o `tmux a -t nombre` o `ta` 
 - **attack to last session**: `tmux attach` o `tmux a`
-- **show all sessions** `leader+s`
-- **close session** `tmux kill-ses -t nombre`
-- **close all except current** `tmux kill-ses -a`
-- **close all except name** `tmux kill-ses -a -t nombre`
+- **show all sessions**: `leader+s`
+- **close session**: `tmux kill-ses -t nombre` o `tkss`
+- **close all except current**: `tmux kill-ses -a`
+- **close all except name**: `tmux kill-ses -a -t nombre`
+- **close all sessions**: `tksv` o `tmux kill-server`
 
 
 ### Others
