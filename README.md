@@ -6,6 +6,9 @@
 - Icons: Tela purple theme
 - Shell: Colloid-Dark1
 
+## ZSH
+https://www.youtube.com/watch?v=MSPu-lYF-A8
+
 ## Gnome settings:
 
 Save:
