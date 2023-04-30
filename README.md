@@ -1,10 +1,10 @@
 # dotfiles
 
 ## Current
-- Apps: Colloid-Dark
+- Apps: (modded) catppuccin-mocha
 - Cursor: Sanity-Cursor
 - Icons: Tela purple theme
-- Shell: Colloid-Dark1
+- Shell: (modded) catppuccin-mocha
 
 ## Keybinds
 
