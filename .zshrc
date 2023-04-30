@@ -241,10 +241,7 @@ if [ -x /usr/bin/dircolors ]; then
     zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 fi
 
-# some more ls aliases
-alias ll='ls -l'
-alias la='ls -A'
-alias l='ls -CF'
+
 
 # enable auto-suggestions based on the history
 if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
@@ -259,7 +256,10 @@ if [ -f /etc/zsh_command_not_found ]; then
 fi
 
 
-# Custom Aliases
+##################
+# Custom Aliases #
+##################
+
 # nvim
 alias vi='nvim'
 alias vim='nvim'
@@ -303,6 +303,9 @@ alias cp='cp -i'
 alias rm='rm -i'
 alias ln='ln -i'
 
+# folder usage
+alias usage='du -h -d1'
+
 # eclipse
 alias eclipse=/opt/eclipse/eclipse
 
@@ -311,13 +314,15 @@ alias eclipse=/opt/eclipse/eclipse
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# Catppuccin theme
+# https://github.com/catppuccin/zsh-syntax-highlighting
+source ~/.zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh
+
 # PATH
 export PATH="/snap/bin:$PATH"
 export PATH=$PATH:/opt/modelsim_ase/bin
 
 export ZSH="/home/ivan/.oh-my-zsh"
-
-
 
 # Plugins
 plugins=(
@@ -332,6 +337,8 @@ plugins=(
     history
     # dos esc ponen sudo
     sudo
+    # poner z y la carpeta a la que queremos ir, se va acordando
+    z
 )
 # source /usr/share/zsh-plugins/sudo.plugin.zsh
 source $ZSH/oh-my-zsh.sh
