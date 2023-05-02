@@ -29,6 +29,17 @@ https://www.youtube.com/watch?v=MSPu-lYF-A8
 
 ## TMUX
 
+- **reload config**: `leader + R`
+- **fetch plugins**: `leader + I`
+
+## Copy
+- **enter copy mode**: `leader + [` o scroll mouse
+- **paste tmux buffer**: `leader + ]`
+- **start selecting text**: `space`
+- **copy text**: `enter`
+- **copy it to clipboard**: `leader + y`
+
+
 ### Panes
 
 - **new pane vertical**: `leader+%`
@@ -62,6 +73,8 @@ https://www.youtube.com/watch?v=MSPu-lYF-A8
 - **close all except current**: `tmux kill-ses -a`
 - **close all except name**: `tmux kill-ses -a -t nombre`
 - **close all sessions**: `tksv` o `tmux kill-server`
+- **save session with tmux resurrect**: `leader + ctrl s`
+- **restore session with tmux resurrect**: `leader + ctrl r`
 
 
 ### Others
