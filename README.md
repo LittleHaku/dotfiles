@@ -1,12 +1,12 @@
 # dotfiles
 
 ## Current
+
 - Apps: (modded) catppuccin-mocha
 - Cursor: Sanity-Cursor
 - Icons: Tela purple theme
 - Shell: (modded) catppuccin-mocha
 - Chrome: Catppuccin Chrome Theme - Mocha
-
 
 ## Screenshots
 
@@ -25,7 +25,7 @@
 
 ## ZSH
 
-https://www.youtube.com/watch?v=MSPu-lYF-A8
+<https://www.youtube.com/watch?v=MSPu-lYF-A8>
 
 ## TMUX
 
@@ -33,12 +33,13 @@ https://www.youtube.com/watch?v=MSPu-lYF-A8
 - **fetch plugins**: `leader + I`
 
 ## Copy
+
+- **copiar normal**: seleccionar text con el raton usando shift, y luego click derecho manteniendo el shift y copiar
 - **enter copy mode**: `leader + [` o scroll mouse
 - **paste tmux buffer**: `leader + ]`
 - **start selecting text**: `space`
 - **copy text**: `enter`
 - **copy it to clipboard**: `leader + y`
-
 
 ### Panes
 
@@ -66,7 +67,7 @@ https://www.youtube.com/watch?v=MSPu-lYF-A8
 - **rename session**: `leader+$`
 - **dettach**: `leader+d`
 - **new session with name**: `tmux new -s nombre` o `ts`
-- **attach**: `tmux attach -t nombre` o `tmux a -t nombre` o `ta` 
+- **attach**: `tmux attach -t nombre` o `tmux a -t nombre` o `ta`
 - **attack to last session**: `tmux attach` o `tmux a`
 - **show all sessions**: `leader+s`
 - **close session**: `tmux kill-ses -t nombre` o `tkss`
@@ -76,12 +77,11 @@ https://www.youtube.com/watch?v=MSPu-lYF-A8
 - **save session with tmux resurrect**: `leader + ctrl s`
 - **restore session with tmux resurrect**: `leader + ctrl r`
 
-
 ### Others
 
 - **reload config**: `leader+r`
 
-## Gnome settings:
+## Gnome settings
 
 Save:
 `dconf dump / > gnome-settings.ini`
@@ -101,7 +101,7 @@ Move this file into `~/dotfiles/i3/.config/i3/config`. Now you can `git add` and
 
 In your terminal, `cd dotfiles`. From there, you can do this:
 
-```
+```bash
 stow i3
 ```
 
@@ -121,11 +121,11 @@ Very easy stuff to set up and you only need `git` and `stow` for it.
 
 For example two files for two machines:
 
-```
+```zsh
 ~/dotfiles/i3/.config/i3/config##myworkstation
 ~/dotfiles/i3/.config/i3/config##trollwutslaptop
 ```
 
-#### Source: https://www.reddit.com/r/archlinux/comments/bloeme/dot_files_backup_tool/
+Source: <https://www.reddit.com/r/archlinux/comments/bloeme/dot_files_backup_tool/>
 
 all credit to most excellent post from [/u/Trollw00t](https://www.reddit.com/user/Trollw00t) explaining how to use `stow` + `git`
