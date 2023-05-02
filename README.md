@@ -31,6 +31,7 @@
 
 - **reload config**: `leader + R`
 - **fetch plugins**: `leader + I`
+- **right click menu**: mantener click derecho
 
 ## Copy
 
