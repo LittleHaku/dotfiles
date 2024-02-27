@@ -120,3 +120,4 @@ export J2EE_HOME=$HOME/glassfish4/glassfish
 export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
 
 . "$HOME/.cargo/env"
+source /home/ivan/.tmc-autocomplete.sh || true

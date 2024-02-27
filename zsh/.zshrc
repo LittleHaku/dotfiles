@@ -271,7 +271,7 @@ alias catn='/bin/cat'
 alias catnl='bat --paging=never'
 
 #different ls
-alias lsn ='ls'
+alias lsn='ls'
 alias ll='lsd -lh --group-dirs=first'
 alias la='lsd -a --group-dirs=first'
 alias l='lsd --group-dirs=first'
@@ -322,7 +322,18 @@ source ~/.zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh
 export PATH="/snap/bin:$PATH"
 export PATH=$PATH:/opt/modelsim_ase/bin
 
+# SI2
+export AS_JAVA=/usr/lib/jvm/java-8-openjdk-amd64
+export J2EE_HOME=$HOME/glassfish4/glassfish
+export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
+
+# Cybersecurity
+
+export PATH=/home/ivan/uni/cybersecurity/chromedriver-linux64:$PATH 
+
+
 export ZSH="/home/ivan/.oh-my-zsh"
+
 
 # Plugins
 plugins=(
@@ -382,10 +393,9 @@ export PROJECT_HOME=$HOME/Devel
 source /usr/local/bin/virtualenvwrapper.sh
 
 
-
-export AS_JAVA=/usr/lib/jvm/java-8-openjdk-amd64
-export J2EE_HOME=$HOME/glassfish4/glassfish
-export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
-
 ZSH_THEME="powerlevel10k/powerlevel10k"
 source ~/powerlevel10k/powerlevel10k.zsh-theme
+# source /home/ivan/.tmc-autocomplete.sh || true
+
+# FUCK
+eval "$(thefuck --alias)"
