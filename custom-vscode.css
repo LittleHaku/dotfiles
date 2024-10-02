@@ -92,10 +92,11 @@
 /* Scroll Bar */
 .slider {
   position: absolute !important;
-  right: 1px !important;
-  width: 1px !important;
+  right: 5px !important;
+  width: 5px !important;
   background: #bc9abc !important;
   left: auto !important;
+  border-radius: 10px !important;
 }
 
 .codicon-toolbar-more,
