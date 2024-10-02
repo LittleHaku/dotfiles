@@ -86,8 +86,15 @@
   display: inline-block;
   margin-right: 6px;
   font-size: 1.1rem;
-  content: "🚀";
+  content: "˚₊ ⋆";
 }
+
+.composite.title h2::after {
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 1.1rem;
+    content: "⋆ ₊˚";
+  }
 
 /* Scroll Bar */
 .slider {
