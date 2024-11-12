@@ -21,6 +21,7 @@ stow .
 - Icons: Tela purple theme
 - Shell: (modded) catppuccin-mocha
 - Chrome: Catppuccin Chrome Theme - Mocha
+- Terminal: Kitty
 
 ## Screenshots
 
