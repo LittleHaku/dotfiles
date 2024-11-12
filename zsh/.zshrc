@@ -399,3 +399,7 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 
 # FUCK
 eval "$(thefuck --alias)"
+
+# Kitty update (launch n so it doesnt execute)
+alias kittyupdate='curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n'
+
