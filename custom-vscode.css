@@ -1,3 +1,5 @@
+/* sudo chown -R $(whoami) /usr/share/code */
+
 /* Code Style */
 .mtk3 {
   font-family: "Monaspace Radon", monospace !important;
