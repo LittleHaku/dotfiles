@@ -329,7 +329,7 @@ export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
 
 # Cybersecurity
 
-export PATH=/home/ivan/uni/cybersecurity/chromedriver-linux64:$PATH 
+export PATH=/home/ivan/uni/cybersecurity/chromedriver-linux64:$PATH
 
 
 export ZSH="/home/ivan/.oh-my-zsh"
@@ -365,7 +365,7 @@ function zle-keymap-select {
   fi
 }
 zle -N zle-keymap-select
- 
+
 # Start with beam shape cursor on zsh startup and after every command.
 zle-line-init() { zle-keymap-select 'beam'}
 
@@ -393,8 +393,12 @@ export PROJECT_HOME=$HOME/Devel
 source /usr/local/bin/virtualenvwrapper.sh
 
 
-ZSH_THEME="powerlevel10k/powerlevel10k"
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+#ZSH_THEME="powerlevel10k/powerlevel10k"
+#source ~/powerlevel10k/powerlevel10k.zsh-theme
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="headline"
+source $ZSH/oh-my-zsh.sh
+
 # source /home/ivan/.tmc-autocomplete.sh || true
 
 # FUCK
@@ -402,4 +406,3 @@ eval "$(thefuck --alias)"
 
 # Kitty update (launch n so it doesnt execute)
 alias kittyupdate='curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n'
-
