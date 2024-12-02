@@ -1,5 +1,9 @@
 # dotfiles
 
+## WSL
+
+https://dev.to/front-commerce/set-up-a-wsl-development-environment-44jk
+
 ## Installation
 
 ```bash
