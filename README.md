@@ -1,5 +1,13 @@
 # dotfiles
 
+## APT Packages
+
+- virtualenv
+- virtualenvwrapper
+- zsh
+- stow
+
+
 ## WSL
 
 https://dev.to/front-commerce/set-up-a-wsl-development-environment-44jk
