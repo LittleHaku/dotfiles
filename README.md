@@ -2,6 +2,8 @@
 
 ## Packages
 
+`pyenv` para control de versiones de Python
+
 ### APT 
 
 - zsh
