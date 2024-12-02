@@ -1,12 +1,19 @@
 # dotfiles
 
-## APT Packages
+## Packages
 
-- virtualenv
-- virtualenvwrapper
+### APT 
+
 - zsh
 - stow
+- lsd
+- bat
+- neovim
 
+### PIP
+
+- virtualenvwrapper
+- thefuck (deprecated)
 
 ## WSL
 
