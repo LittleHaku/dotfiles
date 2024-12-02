@@ -2,7 +2,8 @@
 # see /usr/share/doc/zsh/examples/zshrc for examples
 
 setopt autocd              # change directory just by typing its name
-setopt correct            # auto correct mistakes
+# Trying fuck meanwhile
+#setopt correct            # auto correct mistakes
 setopt interactivecomments # allow comments in interactive mode
 setopt magicequalsubst     # enable filename expansion for arguments of the form ‘anything=expression’
 setopt nonomatch           # hide error message if there is no match for the pattern
@@ -73,8 +74,10 @@ alias ln='ln -i'
 # folder usage
 alias usage='du -h -d1'
 
+# This line or it doesnt work in WSL
+#export PATH=$HOME/.local/bin:$PATH
 # FUCK
-eval "$(thefuck --alias)"
+# eval "$(thefuck --alias)"
 
 # Kitty update (launch n so it doesnt execute)
 alias kittyupdate='curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n'
