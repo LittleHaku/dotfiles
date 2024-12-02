@@ -58,6 +58,23 @@ stow .
 - super+enter: new terminal
 - alt+space: search bar
 - ctrl+s: tmux leader
+## PyEnv instructions
+
+- `pyenv install <pythonversion>`
+- `pyenv shell <version>` -- select just for current shell session
+- `pyenv local <version>` -- automatically select whenever you are in the current directory (or its subdirectories)
+- `pyenv global <version>` -- select globally for your user account
+- `pyenv virtualenvs` see al versions
+- `pyenv uninstall <version>`
+- `pyenv update`
+- Add a `.python-version` file in the directore with the `<name>` will autosource the venv
+
+### [Pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)
+
+- `pyenv virtualenv <pythonver> <name>` create a virtual env with this name and version
+- `pyenv activate <name>`
+- `pyenv deactivate`
+
 
 ## STOW Instructions
 
