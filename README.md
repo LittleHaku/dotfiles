@@ -76,6 +76,7 @@ stow .
 - `pyenv activate <name>`
 - `pyenv deactivate`
 
+Usually is `pyenv install <version>` followed by `pyenv virtualenv <version> <name>`
 
 ## STOW Instructions
 
