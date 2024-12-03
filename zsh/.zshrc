@@ -41,14 +41,6 @@ alias cat='bat'
 alias catn='/bin/cat'
 alias catnl='bat --paging=never'
 
-#different ls
-alias lsn='ls'
-alias ll='lsd -lh --group-dirs=first'
-alias la='lsd -a --group-dirs=first'
-alias l='lsd --group-dirs=first'
-alias lla='lsd -lha --group-dirs=first'
-alias ls='lsd --group-dirs=first'
-
 #apt package manager
 alias aptup='sudo apt update && sudo apt upgrade'
 alias aptupd='sudo apt udpate'
@@ -118,11 +110,12 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+# trying pyenv now
 # Virtual env
-export WORKON_HOME=$HOME/.virtualenvs
-export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-export PROJECT_HOME=$HOME/Devel
-source /usr/local/bin/virtualenvwrapper.sh
+# export WORKON_HOME=$HOME/.virtualenvs
+# export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+# export PROJECT_HOME=$HOME/Devel
+# source /usr/local/bin/virtualenvwrapper.sh
 
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="headline"
@@ -131,3 +124,17 @@ source $ZSH/oh-my-zsh.sh
 # PATH
 export PATH="/snap/bin:$PATH"
 export PATH=$PATH:/opt/modelsim_ase/bin
+
+# PYENV
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# added to the end because it didnt work if not
+#different ls
+alias lsn='ls'
+alias ll='lsd -lh --group-dirs=first'
+alias la='lsd -a --group-dirs=first'
+alias l='lsd --group-dirs=first'
+alias lla='lsd -lha --group-dirs=first'
+alias ls='lsd --group-dirs=first'
