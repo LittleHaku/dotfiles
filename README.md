@@ -14,8 +14,7 @@
 
 ### PIP
 
-- virtualenvwrapper
-- thefuck (deprecated)
+- [pipreqs](https://github.com/bndr/pipreqs): generate the requirements.txt but correctly and without saving every single thing you have
 
 ## WSL
 
