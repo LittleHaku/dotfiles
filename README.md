@@ -11,6 +11,7 @@
 - lsd
 - bat
 - neovim
+- ranger
 
 ### PIP
 
