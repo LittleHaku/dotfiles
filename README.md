@@ -64,7 +64,8 @@ stow .
 - `pyenv shell <version>` -- select just for current shell session
 - `pyenv local <version>` -- automatically select whenever you are in the current directory (or its subdirectories)
 - `pyenv global <version>` -- select globally for your user account
-- `pyenv virtualenvs` see al versions
+- `pyenv virtualenvs` see all virtual env
+- `pyenv virtualenv-delete`
 - `pyenv uninstall <version>`
 - `pyenv update`
 - Add a `.python-version` file in the directore with the `<name>` will autosource the venv
