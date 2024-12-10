@@ -21,6 +21,14 @@
 
 https://dev.to/front-commerce/set-up-a-wsl-development-environment-44jk
 
+Move to another drive:
+
+```
+wsl --unmount
+# cd to the directory you want
+wsl --manage Ubuntu --move .
+```
+
 ## Installation
 
 ```bash
