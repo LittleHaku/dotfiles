@@ -36,6 +36,7 @@ sudo apt update
 sudo apt install zsh
 sudo apt install lsd
 sudo apt install bat
+sudo apt install stow
 ```
 
 - install oh-my-zsh: https://ohmyz.sh/#install
@@ -53,6 +54,10 @@ cd dotfiles
 ```bash
 stow .
 ```
+
+Install the Oh My Zsh versions
+- zsh syntax highlight: https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
+- zsh autosuggestions: https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
 
 ## Current
 
