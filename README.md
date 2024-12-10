@@ -24,6 +24,17 @@ https://dev.to/front-commerce/set-up-a-wsl-development-environment-44jk
 ## Installation
 
 ```bash
+sudo apt update
+sudo apt install zsh
+sudo apt install lsd
+sudo apt install bat
+```
+
+- install oh-my-zsh: https://ohmyz.sh/#install
+- install pyenv: https://github.com/pyenv/pyenv?tab=readme-ov-file#installation (install the dependencies for building too)
+
+
+```bash
 git clone git@github.com:LittleHaku/dotfiles.git
 ```
 
