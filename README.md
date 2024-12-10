@@ -37,7 +37,7 @@ sudo apt install zsh
 sudo apt install lsd
 sudo apt install bat
 sudo apt install stow
-sudo apt insatll nvim
+sudo apt insatll neovim
 sudo apt insatll ranger
 ```
 
