@@ -21,7 +21,29 @@
 
 https://dev.to/front-commerce/set-up-a-wsl-development-environment-44jk
 
+Move to another drive:
+
+```
+wsl --unmount
+# cd to the directory you want
+wsl --manage Ubuntu --move .
+```
+
 ## Installation
+
+```bash
+sudo apt update
+sudo apt install zsh
+sudo apt install lsd
+sudo apt install bat
+sudo apt install stow
+sudo apt insatll neovim
+sudo apt insatll ranger
+```
+
+- install oh-my-zsh: https://ohmyz.sh/#install
+- install pyenv: https://github.com/pyenv/pyenv?tab=readme-ov-file#installation (install the dependencies for building too)
+
 
 ```bash
 git clone git@github.com:LittleHaku/dotfiles.git
@@ -34,6 +56,10 @@ cd dotfiles
 ```bash
 stow .
 ```
+
+Install the Oh My Zsh versions
+- zsh syntax highlight: https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
+- zsh autosuggestions: https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
 
 ## Current
 
