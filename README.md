@@ -117,7 +117,7 @@ git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-m
 
 - `pyenv install <pythonversion>`
 - `pyenv shell <version>` -- select just for current shell session
-- `pyenv local <version>` -- automatically select whenever you are in the current directory (or its subdirectories)
+- `pyenv local <version>` -- creates .python-version file which makes sure that whener you enter there the virtualenv gets started
 - `pyenv global <version>` -- select globally for your user account
 - `pyenv uninstall <version>`
 - `pyenv update`
