@@ -118,7 +118,7 @@ unset __conda_setup
 # source /usr/local/bin/virtualenvwrapper.sh
 
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="headline"
+ZSH_THEME=""
 source $ZSH/oh-my-zsh.sh
 
 # PATH
@@ -138,3 +138,7 @@ alias la='lsd -a --group-dirs=first'
 alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
+
+fpath+=($HOME/.oh-my-zsh/themes/pure)
+autoload -U promptinit; promptinit
+prompt pure
