@@ -32,13 +32,15 @@ wsl --manage Ubuntu --move .
 ## Installation
 
 ```bash
-sudo apt update
+sudo apt update && sudo apt upgrade
 sudo apt install zsh
 sudo apt install lsd
 sudo apt install bat
 sudo apt install stow
 sudo apt insatll neovim
 sudo apt insatll ranger
+sudo apt install nodejs
+sudo apt install npm 
 ```
 
 - install oh-my-zsh: https://ohmyz.sh/#install
