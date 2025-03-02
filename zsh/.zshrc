@@ -139,6 +139,7 @@ alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
 
+# comment all below to disable theme pure
 fpath+=($HOME/.oh-my-zsh/themes/pure)
 autoload -U promptinit; promptinit
 prompt pure
