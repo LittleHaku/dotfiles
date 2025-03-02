@@ -129,6 +129,8 @@ export PATH=$PATH:/opt/modelsim_ase/bin
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+# This one allows that when we enter a directory with a .python-version file, it automatically activates the virtualenv
+eval "$(pyenv virtualenv-init -)"
 
 # added to the end because it didnt work if not
 #different ls
