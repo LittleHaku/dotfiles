@@ -42,7 +42,16 @@ sudo apt insatll ranger
 ```
 
 - install oh-my-zsh: https://ohmyz.sh/#install
+
+```
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
 - install pyenv: https://github.com/pyenv/pyenv?tab=readme-ov-file#installation (install the dependencies for building too)
+```
+curl -fsSL https://pyenv.run | bash
+```
+
 
 
 ```bash
@@ -54,12 +63,24 @@ cd dotfiles
 ```
 
 ```bash
-stow .
+stow tmux
+stow zsh
+stow config
+stow bashrc
 ```
 
-Install the Oh My Zsh versions
+Maybe for some of the stow you get conflict, in which case, delete the one in home (or put it as .bkp)
+
+Install the Oh My Zsh plugins after stow
 - zsh syntax highlight: https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
+```
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
+
 - zsh autosuggestions: https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
+```
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+```
 
 ## Current
 
