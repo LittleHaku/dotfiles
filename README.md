@@ -31,6 +31,14 @@ wsl --manage Ubuntu --move .
 
 ## Installation
 
+### Windows
+
+In admin rights PowerShell:
+
+```
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1'))
+```
+
 ```bash
 sudo apt update && sudo apt upgrade
 sudo apt install zsh
