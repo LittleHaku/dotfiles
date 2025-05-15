@@ -25,24 +25,39 @@ try {
     exit
 }
 
-# Install Git with Winget
-Write-Host "Installing Git..." -ForegroundColor Cyan
-winget install --id Git.Git -e --source winget
-Write-Host "Git installed successfully" -ForegroundColor Green
+# Check for Git and install if not present
+Write-Host "Checking for Git..." -ForegroundColor Cyan
+if (Get-Command git.exe -ErrorAction SilentlyContinue) {
+    Write-Host "Git is already installed: $(git --version)" -ForegroundColor Green
+} else {
+    Write-Host "Git not found. Installing Git..." -ForegroundColor Yellow
+    winget install --id Git.Git -e --source winget
+    Write-Host "Git installed successfully" -ForegroundColor Green
+}
 
 # Refresh environment variables to ensure Git is in the PATH
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
 # Configure Git with user info
-$gitUserName = Read-Host "Enter your Git username"
-$gitEmail = Read-Host "Enter your Git email"
+Write-Host "Checking Git global configuration..." -ForegroundColor Cyan
+$currentGitUserName = git config --global user.name
+$currentGitEmail = git config --global user.email
 
-git config --global user.name "$gitUserName"
-git config --global user.email "$gitEmail"
-git config --global init.defaultBranch main
-git config --global core.autocrlf input
+if ($currentGitUserName -and $currentGitEmail) {
+    Write-Host "Git is already configured with:" -ForegroundColor Green
+    Write-Host "  User Name: $currentGitUserName" -ForegroundColor Green
+    Write-Host "  Email:     $currentGitEmail" -ForegroundColor Green
+} else {
+    Write-Host "Git user.name or user.email not configured globally." -ForegroundColor Yellow
+    $gitUserName = Read-Host "Enter your Git username"
+    $gitEmail = Read-Host "Enter your Git email"
 
-Write-Host "Git configured successfully" -ForegroundColor Green
+    git config --global user.name "$gitUserName"
+    git config --global user.email "$gitEmail"
+    git config --global init.defaultBranch main # Set these regardless, good defaults
+    git config --global core.autocrlf input     # Set these regardless, good defaults
+    Write-Host "Git configured successfully" -ForegroundColor Green
+}
 
 # Clone dotfiles repository
 Write-Host "Cloning dotfiles repository..." -ForegroundColor Cyan
@@ -97,13 +112,13 @@ $AhkScripts = Get-ChildItem -Path "$AhkDir\*.ahk" -ErrorAction SilentlyContinue
 if ($AhkScripts) {
     foreach ($script in $AhkScripts) {
         $shortcutPath = "$StartupFolder\$($script.BaseName).lnk"
-        
+
         # Create a shortcut to the AHK script in the startup folder
         $WshShell = New-Object -ComObject WScript.Shell
         $Shortcut = $WshShell.CreateShortcut($shortcutPath)
         $Shortcut.TargetPath = $script.FullName
         $Shortcut.Save()
-        
+
         Write-Host "Created startup shortcut for $($script.Name)" -ForegroundColor Green
     }
 } else {
@@ -134,30 +149,30 @@ if ((Test-Path -Path "$SshDir\id_rsa") -or (Test-Path -Path "$SshDir\id_ed25519"
         $keyType = "rsa"
         $keyCommand = "ssh-keygen -t rsa -b 4096 -C `"$gitEmail`""
     }
-    
+
     Write-Host "Generating $keyType SSH key..." -ForegroundColor Yellow
     Invoke-Expression $keyCommand
-    
+
     # Start the ssh-agent
     Write-Host "Starting ssh-agent..." -ForegroundColor Yellow
     Start-Service ssh-agent
-    
+
     # Add the SSH key to the agent
     if ($keyType -eq "ed25519") {
         ssh-add "$SshDir\id_ed25519"
     } else {
         ssh-add "$SshDir\id_rsa"
     }
-    
+
     Write-Host "SSH key generated and added to ssh-agent" -ForegroundColor Green
-    
+
     # Copy the public key to clipboard
     if ($keyType -eq "ed25519") {
         Get-Content "$SshDir\id_ed25519.pub" | Set-Clipboard
     } else {
         Get-Content "$SshDir\id_rsa.pub" | Set-Clipboard
     }
-    
+
     Write-Host "SSH public key copied to clipboard. You can now add it to GitHub, GitLab, etc." -ForegroundColor Green
 }
 
