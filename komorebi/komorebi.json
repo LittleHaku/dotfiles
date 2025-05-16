@@ -22,6 +22,15 @@
     "fps": 60,
     "duration": 250
   },
+  "transparency": true,
+  "transparency_alpha": 230,
+  "transparency_ignore_rules": [
+    {
+        "kind": "Title",
+        "id": "YouTube",
+        "matching_strategy": "Contains"
+    }
+  ],
   "monitors": [
     {
       "workspaces": [
