@@ -9,6 +9,7 @@ setopt hist_ignore_space      # ignore commands that start with space
 setopt hist_ignore_all_dups # ignore duplicated commands history list
 setopt hist_save_no_dups    # do not save duplicates
 setopt hist_ignore_dups     # ignore duplicated commands history list
+setopt hist_find_no_dups    # do not save duplicates
 
 # Zinit Plugin Manager
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
