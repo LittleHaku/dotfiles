@@ -8,7 +8,7 @@ source "${ZINIT_HOME}/zinit.zsh"
 zmodload zsh/zprof
 
 # Pure theme - light priority
-zinit ice wait'!' lucid pick"async.zsh" src"pure.zsh"
+zinit ice lucid pick"async.zsh" src"pure.zsh" # NO wait'!'
 zinit light sindresorhus/pure
 
 # Syntax highlighting, suggestions, and completions
@@ -19,7 +19,7 @@ zinit ice wait lucid atinit"zicompinit; zicdreplay"
 zinit light zsh-users/zsh-completions
 
 # Load this last as it's the heaviest
-zinit ice wait'2' lucid
+zinit ice wait'!' lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
 
 # Git-related - medium priority
