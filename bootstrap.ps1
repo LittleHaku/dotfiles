@@ -386,7 +386,7 @@ Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "
 # Productivity Applications
 Install-WingetApp -AppId "Doist.Todoist" -AppName "Todoist"
 Install-WingetApp -AppId "Obsidian.Obsidian" -AppName "Obsidian"
-Install-WingetApp -AppId "ShareX.ShareX" -AppName "ShareX"
+Install-WingetApp -AppId "Zotero.Zotero" -AppName "Zotero"
 Install-WingetApp -AppId "Notion.Notion" -AppName "Notion"
 
 # Communication Applications
@@ -403,9 +403,12 @@ Install-WingetApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToys"
 # Utility Applications
 Install-WingetApp -AppId "7zip.7zip" -AppName "7-Zip"
 Install-WingetApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
+Install-WingetApp -AppId "AceStream.AceStream" -AppName "Ace Stream Media"
+Install-WingetApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # Web Browser
 Install-WingetApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
+Install-WingetApp -AppId "TorProject.TorBrowser" -AppName "Tor Browser"
 
 #------------------------------------------------
 # SUMMARY
@@ -426,13 +429,13 @@ if ($installKomorebi) {
 }
 
 Write-Host "`nAdditional applications installed:"
-Write-Host "- Development: Visual Studio Code, Docker Desktop"
-Write-Host "- Productivity tools: Todoist, Obsidian, ShareX, Notion"
-Write-Host "- Communication: Discord"
-Write-Host "- Gaming: Steam"
-Write-Host "- Utilities: Windows Terminal, Auto Night Mode, Spotify, 7-Zip, VLC Media Player"
-Write-Host "- UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys" # Note: ShareX was moved to Productivity
-Write-Host "- Zen Browser"
+Write-Host "  - Development: Visual Studio Code, Docker Desktop"
+Write-Host "  - Productivity: Todoist, Obsidian, Zotero, Notion"
+Write-Host "  - Communication: Discord"
+Write-Host "  - Gaming: Steam"
+Write-Host "  - Utilities & Media: Windows Terminal, Auto Night Mode, Spotify, 7-Zip, VLC Media Player, Ace Stream Media, Stremio"
+Write-Host "  - UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys"
+Write-Host "  - Web Browsers: Zen Browser, Tor Browser"
 
 Write-Host "`nNext steps:"
 Write-Host "1. Restart your computer if WSL was just installed"
