@@ -218,7 +218,20 @@ if ($installKomorebi) {
     winget install LGUG2Z.whkd -e --source winget
     Write-Host "`nWHKD installed successfully" -ForegroundColor Green
 
-    # Define Komorebi config paths
+    # Fetch Komorebi application-specific configurations (applications.json)
+    # This command downloads/updates 'applications.json' to $Env:USERPROFILE/applications.json
+    # Your 'komorebi.json' should be (and is by default) configured to look for it there.
+    Write-Host "`nFetching/Updating Komorebi application-specific configurations (applications.json)..." -ForegroundColor Cyan
+    Write-Host "This will download to '$env:USERPROFILE\applications.json'." -ForegroundColor Yellow
+    try {
+        komorebic fetch-asc
+        Write-Host "'komorebic fetch-asc' command executed successfully. 'applications.json' should now be at '$env:USERPROFILE\applications.json'." -ForegroundColor Green
+    } catch {
+        Write-Host "Error during 'komorebic fetch-asc': $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "If 'applications.json' is needed by Komorebi, you might need to run 'komorebic fetch-asc' manually after setup." -ForegroundColor Yellow
+    }
+
+    # Define Komorebi source config directory in dotfiles and target paths for symlinks
     $KomorebiConfigDir = "$DotfilesDir\komorebi"
     $WhkdConfigDir = "$DotfilesDir\whkd"
     $KomorebiConfigTarget = "$env:USERPROFILE\komorebi.json"
