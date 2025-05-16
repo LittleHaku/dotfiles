@@ -386,6 +386,7 @@ Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "
 # Productivity Applications
 Install-WingetApp -AppId "Doist.Todoist" -AppName "Todoist"
 Install-WingetApp -AppId "Obsidian.Obsidian" -AppName "Obsidian"
+Install-WingetApp -AppId "ShareX.ShareX" -AppName "ShareX"
 Install-WingetApp -AppId "Notion.Notion" -AppName "Notion"
 
 # Communication Applications
@@ -398,6 +399,10 @@ Install-WingetApp -AppId "Valve.Steam" -AppName "Steam"
 Install-WingetApp -AppId "CharlesMilette.TranslucentTB" -AppName "TranslucentTB (transparent taskbar)"
 Install-WingetApp -AppId "MicaForEveryone.MicaForEveryone" -AppName "Mica For Everyone (enhanced Windows UI)"
 Install-WingetApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToys"
+
+# Utility Applications
+Install-WingetApp -AppId "7zip.7zip" -AppName "7-Zip"
+Install-WingetApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
 
 # Web Browser
 Install-WingetApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
@@ -422,11 +427,11 @@ if ($installKomorebi) {
 
 Write-Host "`nAdditional applications installed:"
 Write-Host "- Development: Visual Studio Code, Docker Desktop"
-Write-Host "- Productivity tools: Todoist, Obsidian, Notion"
+Write-Host "- Productivity tools: Todoist, Obsidian, ShareX, Notion"
 Write-Host "- Communication: Discord"
 Write-Host "- Gaming: Steam"
-Write-Host "- Utilities: Windows Terminal, Auto Night Mode, Spotify"
-Write-Host "- UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys"
+Write-Host "- Utilities: Windows Terminal, Auto Night Mode, Spotify, 7-Zip, VLC Media Player"
+Write-Host "- UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys" # Note: ShareX was moved to Productivity
 Write-Host "- Zen Browser"
 
 Write-Host "`nNext steps:"
