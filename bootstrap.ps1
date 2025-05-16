@@ -11,44 +11,115 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 $DotfilesRepo = "https://github.com/LittleHaku/dotfiles.git"
 $DotfilesDir = "$env:USERPROFILE\dotfiles"
 
-# Check for and install Winget if not present
+# Function to display section header
+function Show-SectionHeader {
+    param (
+        [string]$Title
+    )
+
+    Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Blue
+    Write-Host " $Title" -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Blue
+}
+
+# Function to install an application with winget
+function Install-WingetApp {
+    param (
+        [string]$AppId,
+        [string]$AppName,
+        [switch]$AlwaysAsk = $false
+    )
+
+    Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
+    $install = Read-Host
+
+    if ($install -eq "y" -or $install -eq "") {
+        Write-Host "`nInstalling $AppName..." -ForegroundColor Yellow
+        winget install --id=$AppId -e --source winget
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "`n$AppName installed successfully" -ForegroundColor Green
+            return $true
+        } else {
+            Write-Host "`nFailed to install $AppName. Please check the error and try again." -ForegroundColor Red
+            return $false
+        }
+    } else {
+        Write-Host "`nSkipping $AppName installation" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+# Function to execute a custom installation command
+function Install-CustomApp {
+    param (
+        [string]$AppName,
+        [string]$InstallCommand
+    )
+
+    Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
+    $install = Read-Host
+
+    if ($install -eq "y" -or $install -eq "") {
+        Write-Host "`nInstalling $AppName..." -ForegroundColor Yellow
+        try {
+            Invoke-Expression $InstallCommand
+            Write-Host "`n$AppName installed successfully" -ForegroundColor Green
+            return $true
+        } catch {
+            Write-Host "`nFailed to install ${AppName}: $($_.Exception.Message)" -ForegroundColor Red
+            return $false
+        }
+    } else {
+        Write-Host "`nSkipping $AppName installation" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+#------------------------------------------------
+# PACKAGE MANAGER SETUP
+#------------------------------------------------
+Show-SectionHeader "Package Manager Setup"
 Write-Host "Checking for winget..." -ForegroundColor Cyan
 try {
     $wingetVersion = winget --version
-    Write-Host "Winget is already installed: $wingetVersion" -ForegroundColor Green
+    Write-Host "`nWinget is already installed: $wingetVersion" -ForegroundColor Green
 } catch {
-    Write-Host "Winget not found. Installing..." -ForegroundColor Yellow
+    Write-Host "`nWinget not found. Installing..." -ForegroundColor Yellow
     # For modern Windows 11 systems, winget should be available via the App Installer
     # For Windows 10, we need to install it manually
     Start-Process "ms-appinstaller:?source=https://aka.ms/getwinget"
-    Write-Host "Please complete the winget installation and then rerun this script" -ForegroundColor Red
+    Write-Host "`nPlease complete the winget installation and then rerun this script" -ForegroundColor Red
     exit
 }
 
-# Check for Git and install if not present
+#------------------------------------------------
+# GIT SETUP
+#------------------------------------------------
+Show-SectionHeader "Git Setup"
 Write-Host "Checking for Git..." -ForegroundColor Cyan
 if (Get-Command git.exe -ErrorAction SilentlyContinue) {
-    Write-Host "Git is already installed: $(git --version)" -ForegroundColor Green
+    Write-Host "`nGit is already installed: $(git --version)" -ForegroundColor Green
 } else {
-    Write-Host "Git not found. Installing Git..." -ForegroundColor Yellow
+    Write-Host "`nGit not found. Installing Git..." -ForegroundColor Yellow
     winget install --id Git.Git -e --source winget
-    Write-Host "Git installed successfully" -ForegroundColor Green
+    Write-Host "`nGit installed successfully" -ForegroundColor Green
 }
 
 # Refresh environment variables to ensure Git is in the PATH
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
 # Configure Git with user info
-Write-Host "Checking Git global configuration..." -ForegroundColor Cyan
+Write-Host "`nChecking Git global configuration..." -ForegroundColor Cyan
 $currentGitUserName = git config --global user.name
 $currentGitEmail = git config --global user.email
 
 if ($currentGitUserName -and $currentGitEmail) {
-    Write-Host "Git is already configured with:" -ForegroundColor Green
+    Write-Host "`nGit is already configured with:" -ForegroundColor Green
     Write-Host "  User Name: $currentGitUserName" -ForegroundColor Green
     Write-Host "  Email:     $currentGitEmail" -ForegroundColor Green
 } else {
-    Write-Host "Git user.name or user.email not configured globally." -ForegroundColor Yellow
+    Write-Host "`nGit user.name or user.email not configured globally." -ForegroundColor Yellow
     $gitUserName = Read-Host "Enter your Git username"
     $gitEmail = Read-Host "Enter your Git email"
 
@@ -56,47 +127,51 @@ if ($currentGitUserName -and $currentGitEmail) {
     git config --global user.email "$gitEmail"
     git config --global init.defaultBranch main # Set these regardless, good defaults
     git config --global core.autocrlf input     # Set these regardless, good defaults
-    Write-Host "Git configured successfully" -ForegroundColor Green
+    Write-Host "`nGit configured successfully" -ForegroundColor Green
 }
 
-# Clone dotfiles repository
+#------------------------------------------------
+# DOTFILES SETUP
+#------------------------------------------------
+Show-SectionHeader "Dotfiles Setup"
 Write-Host "Cloning dotfiles repository..." -ForegroundColor Cyan
 if (Test-Path -Path $DotfilesDir) {
-    Write-Host "Dotfiles directory already exists at $DotfilesDir" -ForegroundColor Yellow
+    Write-Host "`nDotfiles directory already exists at $DotfilesDir" -ForegroundColor Yellow
     $overwrite = Read-Host "Do you want to overwrite it? (y/n)"
     if ($overwrite -eq "y") {
         Remove-Item -Path $DotfilesDir -Recurse -Force
         git clone $DotfilesRepo $DotfilesDir
-        Write-Host "Dotfiles repository cloned successfully" -ForegroundColor Green
+        Write-Host "`nDotfiles repository cloned successfully" -ForegroundColor Green
     } else {
-        Write-Host "Skipping cloning operation" -ForegroundColor Yellow
+        Write-Host "`nSkipping cloning operation" -ForegroundColor Yellow
     }
 } else {
     git clone $DotfilesRepo $DotfilesDir
-    Write-Host "Dotfiles repository cloned successfully" -ForegroundColor Green
+    Write-Host "`nDotfiles repository cloned successfully" -ForegroundColor Green
 }
 
-# Install WSL if not already installed
+#------------------------------------------------
+# WSL SETUP
+#------------------------------------------------
+Show-SectionHeader "Windows Subsystem for Linux"
 Write-Host "Checking WSL installation..." -ForegroundColor Cyan
 try {
     wsl --status
-    Write-Host "WSL is already installed" -ForegroundColor Green
+    Write-Host "`nWSL is already installed" -ForegroundColor Green
 } catch {
-    Write-Host "Installing WSL..." -ForegroundColor Yellow
+    Write-Host "`nInstalling WSL..." -ForegroundColor Yellow
     wsl --install
-    Write-Host "WSL installation initiated. You may need to restart your computer to complete the installation." -ForegroundColor Yellow
+    Write-Host "`nWSL installation initiated. You may need to restart your computer to complete the installation." -ForegroundColor Yellow
     Write-Host "After restart, WSL will continue setup automatically."
 }
 
-# Ask about installing AutoHotkey
-Write-Host "Do you want to install AutoHotkey? (y/n)" -ForegroundColor Cyan
-$installAhk = Read-Host
-if ($installAhk -eq "y") {
-    # Install AutoHotkey with Winget
-    Write-Host "Installing AutoHotkey..." -ForegroundColor Cyan
-    winget install --id AutoHotkey.AutoHotkey -e --source winget
-    Write-Host "AutoHotkey installed successfully" -ForegroundColor Green
+#------------------------------------------------
+# AUTOHOTKEY SETUP
+#------------------------------------------------
+Show-SectionHeader "AutoHotkey Setup"
+$installAhk = Install-WingetApp -AppId "AutoHotkey.AutoHotkey" -AppName "AutoHotkey"
 
+if ($installAhk) {
     # Define AHK directory path now that we have the dotfiles cloned
     $AhkDir = "$DotfilesDir\ahk"
 
@@ -104,11 +179,11 @@ if ($installAhk -eq "y") {
     $PathEnv = [Environment]::GetEnvironmentVariable("PATH", "User")
     if (-not $PathEnv.Contains($AhkDir)) {
         [Environment]::SetEnvironmentVariable("PATH", "$PathEnv;$AhkDir", "User")
-        Write-Host "Added $AhkDir to PATH" -ForegroundColor Green
+        Write-Host "`nAdded $AhkDir to PATH" -ForegroundColor Green
     }
 
     # Create symbolic links between AHK scripts and Windows startup folder
-    Write-Host "Setting up AutoHotkey scripts to run at startup..." -ForegroundColor Cyan
+    Write-Host "`nSetting up AutoHotkey scripts to run at startup..." -ForegroundColor Cyan
     $StartupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 
     # Check if there are any AHK scripts to link
@@ -126,21 +201,22 @@ if ($installAhk -eq "y") {
             Write-Host "Created startup shortcut for $($script.Name)" -ForegroundColor Green
         }
     } else {
-        Write-Host "No AHK scripts found in $AhkDir directory" -ForegroundColor Yellow
+        Write-Host "`nNo AHK scripts found in $AhkDir directory" -ForegroundColor Yellow
         Write-Host "You can add your AHK scripts to this directory later" -ForegroundColor Yellow
     }
-} else {
-    Write-Host "Skipping AutoHotkey installation" -ForegroundColor Yellow
 }
 
-# Add Komorebi tiling window manager installation
-Write-Host "Do you want to install Komorebi tiling window manager? (y/n)" -ForegroundColor Cyan
-$installKomorebi = Read-Host
-if ($installKomorebi -eq "y") {
-    Write-Host "Installing Komorebi and WHKD..." -ForegroundColor Yellow
-    winget install LGUG2Z.komorebi -e --source winget
+#------------------------------------------------
+# KOMOREBI TILING WINDOW MANAGER SETUP
+#------------------------------------------------
+Show-SectionHeader "Komorebi Tiling Window Manager"
+$installKomorebi = Install-WingetApp -AppId "LGUG2Z.komorebi" -AppName "Komorebi tiling window manager"
+
+if ($installKomorebi) {
+    # Install WHKD (companion hotkey daemon)
+    Write-Host "`nInstalling WHKD (companion hotkey daemon)..." -ForegroundColor Yellow
     winget install LGUG2Z.whkd -e --source winget
-    Write-Host "Komorebi and WHKD installed successfully" -ForegroundColor Green
+    Write-Host "`nWHKD installed successfully" -ForegroundColor Green
 
     # Define Komorebi config paths
     $KomorebiConfigDir = "$DotfilesDir\komorebi"
@@ -150,7 +226,7 @@ if ($installKomorebi -eq "y") {
     $WhkdConfigTarget = "$env:USERPROFILE\.config\whkdrc"
 
     # Create symbolic links for Komorebi configuration
-    Write-Host "Setting up Komorebi configuration..." -ForegroundColor Cyan
+    Write-Host "`nSetting up Komorebi configuration..." -ForegroundColor Cyan
 
     # Check if source config files exist in dotfiles repo
     $KomorebiConfigSource = "$KomorebiConfigDir\komorebi.json"
@@ -202,7 +278,8 @@ if ($installKomorebi -eq "y") {
     Create-ConfigLink -SourcePath $WhkdConfigSource -TargetPath $WhkdConfigTarget -ConfigName "WHKD"
 
     # Register Komorebi and WHKD to run at startup
-    Write-Host "Registering Komorebi and WHKD to run at startup..." -ForegroundColor Cyan
+    Write-Host "`nRegistering Komorebi and WHKD to run at startup..." -ForegroundColor Cyan
+    $StartupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
     $komorebiStartupPath = "$StartupFolder\komorebi.lnk"
     $whkdStartupPath = "$StartupFolder\whkd.lnk"
 
@@ -219,28 +296,29 @@ if ($installKomorebi -eq "y") {
     $WhkdShortcut.TargetPath = "whkd.exe"
     $WhkdShortcut.Save()
 
-    Write-Host "Komorebi setup complete and configured to run at startup" -ForegroundColor Green
+    Write-Host "`nKomorebi setup complete and configured to run at startup" -ForegroundColor Green
     Write-Host "You can modify your Komorebi configuration by editing files in $KomorebiConfigDir" -ForegroundColor Cyan
-} else {
-    Write-Host "Skipping Komorebi installation" -ForegroundColor Yellow
 }
 
-# Set up SSH keys
+#------------------------------------------------
+# SSH KEYS SETUP
+#------------------------------------------------
+Show-SectionHeader "SSH Keys Setup"
 Write-Host "Setting up SSH keys..." -ForegroundColor Cyan
 $SshDir = "$env:USERPROFILE\.ssh"
 
 # Create SSH directory if it doesn't exist
 if (-not (Test-Path -Path $SshDir)) {
     New-Item -ItemType Directory -Path $SshDir -Force | Out-Null
-    Write-Host "Created SSH directory" -ForegroundColor Green
+    Write-Host "`nCreated SSH directory" -ForegroundColor Green
 }
 
 # Check if SSH keys already exist
 if ((Test-Path -Path "$SshDir\id_rsa") -or (Test-Path -Path "$SshDir\id_ed25519")) {
-    Write-Host "SSH keys already exist" -ForegroundColor Green
+    Write-Host "`nSSH keys already exist" -ForegroundColor Green
 } else {
     # Ask for key type
-    $keyType = Read-Host "Choose SSH key type: (1) RSA or (2) ED25519 [default: 2]"
+    $keyType = Read-Host "`nChoose SSH key type: (1) RSA or (2) ED25519 [default: 2]"
     if (-not $keyType -or $keyType -eq "2") {
         $keyType = "ed25519"
         $keyCommand = "ssh-keygen -t ed25519 -C `"$gitEmail`""
@@ -249,11 +327,11 @@ if ((Test-Path -Path "$SshDir\id_rsa") -or (Test-Path -Path "$SshDir\id_ed25519"
         $keyCommand = "ssh-keygen -t rsa -b 4096 -C `"$gitEmail`""
     }
 
-    Write-Host "Generating $keyType SSH key..." -ForegroundColor Yellow
+    Write-Host "`nGenerating $keyType SSH key..." -ForegroundColor Yellow
     Invoke-Expression $keyCommand
 
     # Start the ssh-agent
-    Write-Host "Starting ssh-agent..." -ForegroundColor Yellow
+    Write-Host "`nStarting ssh-agent..." -ForegroundColor Yellow
     Start-Service ssh-agent
 
     # Add the SSH key to the agent
@@ -263,7 +341,7 @@ if ((Test-Path -Path "$SshDir\id_rsa") -or (Test-Path -Path "$SshDir\id_ed25519"
         ssh-add "$SshDir\id_rsa"
     }
 
-    Write-Host "SSH key generated and added to ssh-agent" -ForegroundColor Green
+    Write-Host "`nSSH key generated and added to ssh-agent" -ForegroundColor Green
 
     # Copy the public key to clipboard
     if ($keyType -eq "ed25519") {
@@ -272,41 +350,86 @@ if ((Test-Path -Path "$SshDir\id_rsa") -or (Test-Path -Path "$SshDir\id_ed25519"
         Get-Content "$SshDir\id_rsa.pub" | Set-Clipboard
     }
 
-    Write-Host "SSH public key copied to clipboard. You can now add it to GitHub, GitLab, etc." -ForegroundColor Green
+    Write-Host "`nSSH public key copied to clipboard. You can now add it to GitHub, GitLab, etc." -ForegroundColor Green
 }
 
-# Configure Windows Terminal (if installed)
+#------------------------------------------------
+# WINDOWS TERMINAL SETUP
+#------------------------------------------------
+Show-SectionHeader "Windows Terminal Setup"
 Write-Host "Checking for Windows Terminal..." -ForegroundColor Cyan
 $TerminalSettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
 if (Test-Path -Path $TerminalSettingsPath) {
-    Write-Host "Windows Terminal is installed" -ForegroundColor Green
+    Write-Host "`nWindows Terminal is installed" -ForegroundColor Green
     Write-Host "You can update Windows Terminal settings manually from the dotfiles" -ForegroundColor Yellow
 } else {
-    Write-Host "Windows Terminal not found. Consider installing it via Winget:" -ForegroundColor Yellow
-    Write-Host "winget install Microsoft.WindowsTerminal" -ForegroundColor Yellow
+    Install-WingetApp -AppId "Microsoft.WindowsTerminal" -AppName "Windows Terminal"
 }
 
+#------------------------------------------------
+# ADDITIONAL APPLICATIONS
+#------------------------------------------------
+Show-SectionHeader "Additional Applications Setup"
+Write-Host "Installing additional useful applications..." -ForegroundColor Cyan
+
+# Windows Auto Night Mode (for automatic light/dark theme switching)
+Install-WingetApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
+
+# Spotify with SpotX modifications (ad-free)
+Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -new_theme"'
+
+# Productivity Applications
+Install-WingetApp -AppId "Doist.Todoist" -AppName "Todoist"
+Install-WingetApp -AppId "Notion.Notion" -AppName "Notion"
+
+# Communication Applications
+Install-WingetApp -AppId "Discord.Discord" -AppName "Discord"
+
+# Gaming Applications
+Install-WingetApp -AppId "Valve.Steam" -AppName "Steam"
+
+# UI Enhancement Applications
+Install-WingetApp -AppId "CharlesMilette.TranslucentTB" -AppName "TranslucentTB (transparent taskbar)"
+Install-WingetApp -AppId "MicaForEveryone.MicaForEveryone" -AppName "Mica For Everyone (enhanced Windows UI)"
+
+# Web Browser
+Install-WingetApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
+
+#------------------------------------------------
+# SUMMARY
+#------------------------------------------------
+Show-SectionHeader "Setup Complete"
 Write-Host "Dotfiles initialization complete!" -ForegroundColor Green
-Write-Host "Your environment has been set up with:"
+Write-Host "`nYour environment has been set up with:"
 Write-Host "- Git installed and configured"
 Write-Host "- Dotfiles repository cloned to $DotfilesDir"
 Write-Host "- WSL installed (if needed)"
 Write-Host "- SSH keys set up"
-if ($installAhk -eq "y") {
+if ($installAhk) {
     Write-Host "- AutoHotkey installed and scripts set to run at startup"
 }
-if ($installKomorebi -eq "y") {
+if ($installKomorebi) {
     Write-Host "- Komorebi tiling window manager installed and configured"
     Write-Host "- WHKD hotkey daemon installed and configured"
 }
-Write-Host ""
-Write-Host "Next steps:"
+
+Write-Host "`nAdditional applications installed:"
+Write-Host "- Windows Terminal, Auto Night Mode, Spotify"
+Write-Host "- Productivity tools: Todoist, Notion"
+Write-Host "- Communication: Discord"
+Write-Host "- Gaming: Steam"
+Write-Host "- UI Enhancements: TranslucentTB, MicaForEveryone"
+Write-Host "- Zen Browser"
+
+Write-Host "`nNext steps:"
 Write-Host "1. Restart your computer if WSL was just installed"
-if ($installAhk -eq "y") {
+if ($installAhk) {
     Write-Host "2. Add any additional AutoHotkey scripts to $AhkDir"
 }
-if ($installKomorebi -eq "y") {
+if ($installKomorebi) {
     Write-Host "3. Customize your Komorebi configuration in $KomorebiConfigDir"
     Write-Host "4. Run `komorebic start --whkd --bar` to start Komorebi or restart your computer"
 }
+
+Write-Host "`nEnjoy your newly configured Windows environment!" -ForegroundColor Cyan
