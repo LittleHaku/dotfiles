@@ -123,3 +123,5 @@ export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
 source /home/ivan/.tmc-autocomplete.sh || true
 
 . "$HOME/.local/bin/env"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

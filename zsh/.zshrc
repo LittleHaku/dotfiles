@@ -29,6 +29,12 @@ setopt hist_find_no_dups    # do not save duplicates
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # completion with colors
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+# disable default completion to use fzf
+zstyle ':completion:*' menu no
+# add fzf preview for cd
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --group-dirs=first'
+# add fzf preview for z
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'lsd --group-dirs=first'
 
 # Pure theme - light priority
 zinit ice lucid pick"async.zsh" src"pure.zsh" # NO wait'!'
@@ -52,6 +58,10 @@ zinit light paulirish/git-open
 zinit ice wait lucid
 zinit snippet OMZ::plugins/git/git.plugin.zsh
 
+# fzf
+zinit ice wait lucid
+zinit light Aloxaf/fzf-tab
+
 # Other utilities - they can be deferred
 zinit ice wait lucid
 zinit snippet OMZ::plugins/tmux/tmux.plugin.zsh
@@ -61,6 +71,9 @@ zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
 
 zinit ice wait lucid
 zinit light agkozak/zsh-z
+
+zinit ice wait lucid
+zinit snippet OMZP::command-not-found
 
 # Add PyEnv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -111,6 +124,8 @@ alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
 
+# fzf (dont apt install, use git)
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # End startup time measurement - comment out for normal use
 # if [[ "$PROFILE_STARTUP" == true ]]; then
