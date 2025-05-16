@@ -23,7 +23,7 @@
     "duration": 250
   },
   "transparency": true,
-  "transparency_alpha": 230,
+  "transparency_alpha": 240,
   "transparency_ignore_rules": [
     {
         "kind": "Title",
