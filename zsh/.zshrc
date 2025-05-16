@@ -27,6 +27,8 @@ setopt hist_find_no_dups    # do not save duplicates
 
 # case insensitive completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+# completion with colors
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
 # Pure theme - light priority
 zinit ice lucid pick"async.zsh" src"pure.zsh" # NO wait'!'
