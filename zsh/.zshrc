@@ -62,6 +62,10 @@ zinit snippet OMZ::plugins/git/git.plugin.zsh
 zinit ice wait lucid
 zinit light Aloxaf/fzf-tab
 
+# dotenv 
+zinit ice wait lucid
+zinit snippet OMZP::dotenv
+
 # Other utilities - they can be deferred
 zinit ice wait lucid
 zinit snippet OMZ::plugins/tmux/tmux.plugin.zsh
