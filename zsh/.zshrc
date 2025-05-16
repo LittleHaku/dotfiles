@@ -25,7 +25,8 @@ setopt hist_save_no_dups    # do not save duplicates
 setopt hist_ignore_dups     # ignore duplicated commands history list
 setopt hist_find_no_dups    # do not save duplicates
 
-
+# case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 # Pure theme - light priority
 zinit ice lucid pick"async.zsh" src"pure.zsh" # NO wait'!'
