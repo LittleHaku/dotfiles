@@ -4,29 +4,44 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
-# Add pure theme
-zinit ice pick"async.zsh" src"pure.zsh" # with zsh-async library that's bundled with it.
+# Measure startup time - add at the beginning
+zmodload zsh/zprof
+
+# Pure theme - light priority
+zinit ice wait'!' lucid pick"async.zsh" src"pure.zsh"
 zinit light sindresorhus/pure
 
-# Add ZSH plugins
-zinit light zdharma-continuum/fast-syntax-highlighting
+# Syntax highlighting and suggestions - can be deferred a bit
+zinit ice wait lucid atload"_zsh_autosuggest_start"
 zinit light zsh-users/zsh-autosuggestions
+
+zinit ice wait lucid
 zinit light zsh-users/zsh-completions
 
-# Open git in the browser
+# Load this last as it's the heaviest
+zinit ice wait'2' lucid
+zinit light zdharma-continuum/fast-syntax-highlighting
+
+# Git-related - medium priority
+zinit ice wait lucid
 zinit light paulirish/git-open
-# Git aliases
+
+zinit ice wait lucid
 zinit snippet OMZ::plugins/git/git.plugin.zsh
-# tmux aliases (maybe I could do this by hand so I don't have to load the plugin)
+
+# Other utilities - they can be deferred
+zinit ice wait lucid
 zinit snippet OMZ::plugins/tmux/tmux.plugin.zsh
-# Add sudo pressing esc 2 times
+
+zinit ice wait lucid
 zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
 
-# Z travel
+zinit ice wait lucid
 zinit light agkozak/zsh-z
 
 # Load completions
-autoload -U compinit && compinit
+zinit ice wait lucid atinit"zicompinit; zicdreplay"
+zinit light zdharma-continuum/fast-syntax-highlighting
 
 # Add PyEnv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -37,8 +52,6 @@ fi
 
 # Add UV
 . "$HOME/.local/bin/env"
-
-
 
 ##################
 # Custom Aliases #
@@ -77,3 +90,9 @@ alias la='lsd -a --group-dirs=first'
 alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
+
+
+# End startup time measurement - add at the end of your .zshrc
+if [[ "$PROFILE_STARTUP" == true ]]; then
+  zprof
+fi
