@@ -121,3 +121,5 @@ export PATH=$HOME/glassfish4/glassfish/bin:${PATH}
 
 . "$HOME/.cargo/env"
 source /home/ivan/.tmc-autocomplete.sh || true
+
+. "$HOME/.local/bin/env"
