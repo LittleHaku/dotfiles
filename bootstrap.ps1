@@ -373,6 +373,10 @@ if (Test-Path -Path $TerminalSettingsPath) {
 Show-SectionHeader "Additional Applications Setup"
 Write-Host "Installing additional useful applications..." -ForegroundColor Cyan
 
+# Development Tools
+Install-WingetApp -AppId "Microsoft.VisualStudioCode" -AppName "Visual Studio Code"
+Install-WingetApp -AppId "Docker.DockerDesktop" -AppName "Docker Desktop"
+
 # Windows Auto Night Mode (for automatic light/dark theme switching)
 Install-WingetApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
 
@@ -381,6 +385,7 @@ Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "
 
 # Productivity Applications
 Install-WingetApp -AppId "Doist.Todoist" -AppName "Todoist"
+Install-WingetApp -AppId "Obsidian.Obsidian" -AppName "Obsidian"
 Install-WingetApp -AppId "Notion.Notion" -AppName "Notion"
 
 # Communication Applications
@@ -392,6 +397,7 @@ Install-WingetApp -AppId "Valve.Steam" -AppName "Steam"
 # UI Enhancement Applications
 Install-WingetApp -AppId "CharlesMilette.TranslucentTB" -AppName "TranslucentTB (transparent taskbar)"
 Install-WingetApp -AppId "MicaForEveryone.MicaForEveryone" -AppName "Mica For Everyone (enhanced Windows UI)"
+Install-WingetApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToys"
 
 # Web Browser
 Install-WingetApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
@@ -415,11 +421,12 @@ if ($installKomorebi) {
 }
 
 Write-Host "`nAdditional applications installed:"
-Write-Host "- Windows Terminal, Auto Night Mode, Spotify"
-Write-Host "- Productivity tools: Todoist, Notion"
+Write-Host "- Development: Visual Studio Code, Docker Desktop"
+Write-Host "- Productivity tools: Todoist, Obsidian, Notion"
 Write-Host "- Communication: Discord"
 Write-Host "- Gaming: Steam"
-Write-Host "- UI Enhancements: TranslucentTB, MicaForEveryone"
+Write-Host "- Utilities: Windows Terminal, Auto Night Mode, Spotify"
+Write-Host "- UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys"
 Write-Host "- Zen Browser"
 
 Write-Host "`nNext steps:"
