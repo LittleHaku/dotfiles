@@ -67,8 +67,8 @@ zinit ice wait lucid
 zinit snippet OMZP::dotenv
 
 # Other utilities - they can be deferred
-zinit ice wait lucid
-zinit snippet OMZ::plugins/tmux/tmux.plugin.zsh
+# zinit ice wait lucid
+zinit snippet OMZP::tmux
 
 zinit ice wait lucid
 zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
