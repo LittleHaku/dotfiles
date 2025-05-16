@@ -13,6 +13,12 @@ zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-completions
 
+# Open git in the browser
+zinit light paulirish/git-open
+# Git aliases
+zinit snippet OMZ::plugins/git/git.plugin.zsh
+
+
 # Load completions
 autoload -U compinit && compinit
 
