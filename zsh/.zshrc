@@ -1,11 +1,14 @@
 # History configurations
 HISTFILE=~/.zsh_history
-HISTSIZE=1000
-SAVEHIST=2000
-setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
-setopt hist_ignore_dups       # ignore duplicated commands history list
+HISTSIZE=5000
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt append_history           # append to history file
+setopt share_history            # share history between sessions
 setopt hist_ignore_space      # ignore commands that start with space
-setopt hist_verify            # show command with history expansion to user before running it
+setopt hist_ignore_all_dups # ignore duplicated commands history list
+setopt hist_save_no_dups    # do not save duplicates
+setopt hist_ignore_dups     # ignore duplicated commands history list
 
 # Zinit Plugin Manager
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -14,7 +17,7 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 source "${ZINIT_HOME}/zinit.zsh"
 
 # For profiling - comment out for normal use
-zmodload zsh/zprof
+# zmodload zsh/zprof
 
 # Pure theme - light priority
 zinit ice lucid pick"async.zsh" src"pure.zsh" # NO wait'!'
@@ -99,6 +102,6 @@ alias ls='lsd --group-dirs=first'
 
 
 # End startup time measurement - comment out for normal use
-if [[ "$PROFILE_STARTUP" == true ]]; then
-  zprof
-fi
+# if [[ "$PROFILE_STARTUP" == true ]]; then
+#   zprof
+# fi
