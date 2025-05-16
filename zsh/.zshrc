@@ -17,7 +17,13 @@ zinit light zsh-users/zsh-completions
 zinit light paulirish/git-open
 # Git aliases
 zinit snippet OMZ::plugins/git/git.plugin.zsh
+# tmux aliases (maybe I could do this by hand so I don't have to load the plugin)
+zinit snippet OMZ::plugins/tmux/tmux.plugin.zsh
+# Add sudo pressing esc 2 times
+zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
 
+# Z travel
+zinit light agkozak/zsh-z
 
 # Load completions
 autoload -U compinit && compinit
@@ -31,3 +37,43 @@ fi
 
 # Add UV
 . "$HOME/.local/bin/env"
+
+
+
+##################
+# Custom Aliases #
+##################
+
+# nvim
+alias vi='nvim'
+alias vim='nvim'
+alias cvim='vim'
+
+#use bat instead of cat
+alias cat='batcat'
+alias catn='/bin/cat'
+alias catnl='bat --paging=never'
+
+#apt package manager
+alias aptup='sudo apt update && sudo apt upgrade'
+alias aptupd='sudo apt udpate'
+alias aptupg='sudo apt upgrade'
+alias aptin='sudo apt install'
+alias aptrm='sudo apt remove'
+
+# update zinit
+alias ziup='zinit update'
+# update zinit plugins
+alias ziupg='zinit update --all'
+
+
+# folder usage
+alias usage='du -h -d1'
+
+# lsd
+alias lsn='ls'
+alias ll='lsd -lh --group-dirs=first'
+alias la='lsd -a --group-dirs=first'
+alias l='lsd --group-dirs=first'
+alias lla='lsd -lha --group-dirs=first'
+alias ls='lsd --group-dirs=first'
