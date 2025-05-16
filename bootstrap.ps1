@@ -214,15 +214,28 @@ $installKomorebi = Install-WingetApp -AppId "LGUG2Z.komorebi" -AppName "Komorebi
 
 if ($installKomorebi) {
     # Install WHKD (companion hotkey daemon)
-    Write-Host "`nInstalling WHKD (companion hotkey daemon)..." -ForegroundColor Yellow
+    Write-Host "`nAttempting to install WHKD (companion hotkey daemon)..." -ForegroundColor Yellow
     winget install LGUG2Z.whkd -e --source winget
-    Write-Host "`nWHKD installed successfully" -ForegroundColor Green
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "`nWHKD installed successfully" -ForegroundColor Green
+    } else {
+        Write-Warning "`nFailed to install WHKD. Komorebi hotkeys might not work."
+        Write-Warning "You may need to install WHKD (LGUG2Z.whkd) manually via winget and ensure it's in your PATH."
+        # Continue with Komorebi setup, but hotkeys might be an issue.
+    }
+
+    # Refresh environment variables in the current session to find new executables
+    # This helps ensure 'komorebic.exe' can be found by Get-Command and for 'komorebic fetch-asc'
+    Write-Host "`nRefreshing PATH for current session..." -ForegroundColor DarkGray
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
     # Fetch Komorebi application-specific configurations (applications.json)
     # This command downloads/updates 'applications.json' to $Env:USERPROFILE/applications.json
     # Your 'komorebi.json' should be (and is by default) configured to look for it there.
     Write-Host "`nFetching/Updating Komorebi application-specific configurations (applications.json)..." -ForegroundColor Cyan
     Write-Host "This will download to '$env:USERPROFILE\applications.json'." -ForegroundColor Yellow
+    # Ensure komorebic is found after potential PATH update from its installation
+    # The PATH refresh above should help here.
     try {
         komorebic fetch-asc
         Write-Host "'komorebic fetch-asc' command executed successfully. 'applications.json' should now be at '$env:USERPROFILE\applications.json'." -ForegroundColor Green
@@ -291,25 +304,71 @@ if ($installKomorebi) {
     Create-ConfigLink -SourcePath $WhkdConfigSource -TargetPath $WhkdConfigTarget -ConfigName "WHKD"
 
     # Register Komorebi and WHKD to run at startup
-    Write-Host "`nRegistering Komorebi and WHKD to run at startup..." -ForegroundColor Cyan
+    Write-Host "`nRegistering Komorebi to run at startup..." -ForegroundColor Cyan
     $StartupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-    $komorebiStartupPath = "$StartupFolder\komorebi.lnk"
+    $komorebiStartupPath = "$StartupFolder\komorebi.bat"
+
+    # Get the full path to komorebic.exe
+    try {
+        # Try to get the exact path to the executable
+        $komorebiExeFullPath = (Get-Command komorebic.exe -ErrorAction Stop).Source
+        Write-Host "Found komorebic.exe at: $komorebiExeFullPath" -ForegroundColor Green
+    }
+    catch {
+        # If we can't find it, check common installation locations
+        $possiblePaths = @(
+            "C:\Users\$env:USERNAME\scoop\apps\komorebi\current\komorebic.exe",
+            "C:\Program Files\LGUG2Z\komorebi\komorebic.exe",
+            "C:\Program Files (x86)\LGUG2Z\komorebi\komorebic.exe"
+        )
+
+        foreach ($path in $possiblePaths) {
+            if (Test-Path $path) {
+                $komorebiExeFullPath = $path
+                Write-Host "Found komorebic.exe at: $komorebiExeFullPath" -ForegroundColor Green
+                break
+            }
+        }
+
+        # If still not found, ask the user for the path
+        if (-not $komorebiExeFullPath) {
+            Write-Host "Unable to automatically detect komorebic.exe location." -ForegroundColor Yellow
+            Write-Host "Please enter the full path to komorebic.exe:" -ForegroundColor Cyan
+            $komorebiExeFullPath = Read-Host
+
+            if (-not (Test-Path $komorebiExeFullPath)) {
+                Write-Warning "The specified path does not exist. Startup script may not work properly."
+            }
+        }
+    }
+
+    # Remove any existing Komorebi startup files to ensure we create fresh ones
+    if (Test-Path $komorebiStartupPath) {
+        Remove-Item $komorebiStartupPath -Force
+        Write-Host "Removed existing Komorebi startup script" -ForegroundColor Yellow
+    }
+
+    # Create Komorebi startup batch file instead of shortcut
+    $komorebiDir = [System.IO.Path]::GetDirectoryName($komorebiExeFullPath)
+    $batchContent = @"
+@echo off
+cd /d "$komorebiDir"
+start "" "$komorebiExeFullPath" start --config "$env:USERPROFILE\komorebi.json" --whkd --bar
+"@
+
+    Set-Content -Path $komorebiStartupPath -Value $batchContent -Encoding ASCII
+    Write-Host "Created Komorebi startup batch file" -ForegroundColor Green
+
+    # Ensure separate WHKD shortcut is removed as 'komorebic start --whkd' handles it
     $whkdStartupPath = "$StartupFolder\whkd.lnk"
+    if (Test-Path $whkdStartupPath) {
+        Remove-Item $whkdStartupPath -Force
+        Write-Host "Removed redundant WHKD startup shortcut. Komorebi will manage WHKD." -ForegroundColor Yellow
+    }
 
-    $WshShell = New-Object -ComObject WScript.Shell
-
-    # Create Komorebi shortcut
-    $KomorebiShortcut = $WshShell.CreateShortcut($komorebiStartupPath)
-    $KomorebiShortcut.TargetPath = "komorebic.exe"
-    $KomorebiShortcut.Arguments = "start --whkd --bar"
-    $KomorebiShortcut.Save()
-
-    # Create WHKD shortcut
-    $WhkdShortcut = $WshShell.CreateShortcut($whkdStartupPath)
-    $WhkdShortcut.TargetPath = "whkd.exe"
-    $WhkdShortcut.Save()
-
-    Write-Host "`nKomorebi setup complete and configured to run at startup" -ForegroundColor Green
+    Write-Host "`nKomorebi configured to run at startup with command:" -ForegroundColor Green
+    Write-Host "  $komorebiExeFullPath start --config $env:USERPROFILE\komorebi.json --whkd --bar" -ForegroundColor Cyan
+    Write-Host "Startup script created in: $komorebiStartupPath" -ForegroundColor Green
     Write-Host "You can modify your Komorebi configuration by editing files in $KomorebiConfigDir" -ForegroundColor Cyan
 }
 
