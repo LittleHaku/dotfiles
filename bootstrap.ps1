@@ -88,42 +88,141 @@ try {
     Write-Host "After restart, WSL will continue setup automatically."
 }
 
-# Install AutoHotkey with Winget
-Write-Host "Installing AutoHotkey..." -ForegroundColor Cyan
-winget install --id AutoHotkey.AutoHotkey -e --source winget
-Write-Host "AutoHotkey installed successfully" -ForegroundColor Green
+# Ask about installing AutoHotkey
+Write-Host "Do you want to install AutoHotkey? (y/n)" -ForegroundColor Cyan
+$installAhk = Read-Host
+if ($installAhk -eq "y") {
+    # Install AutoHotkey with Winget
+    Write-Host "Installing AutoHotkey..." -ForegroundColor Cyan
+    winget install --id AutoHotkey.AutoHotkey -e --source winget
+    Write-Host "AutoHotkey installed successfully" -ForegroundColor Green
 
-# Define AHK directory path now that we have the dotfiles cloned
-$AhkDir = "$DotfilesDir\ahk"
+    # Define AHK directory path now that we have the dotfiles cloned
+    $AhkDir = "$DotfilesDir\ahk"
 
-# Add the AHK directory to PATH for easy script access
-$PathEnv = [Environment]::GetEnvironmentVariable("PATH", "User")
-if (-not $PathEnv.Contains($AhkDir)) {
-    [Environment]::SetEnvironmentVariable("PATH", "$PathEnv;$AhkDir", "User")
-    Write-Host "Added $AhkDir to PATH" -ForegroundColor Green
-}
+    # Add the AHK directory to PATH for easy script access
+    $PathEnv = [Environment]::GetEnvironmentVariable("PATH", "User")
+    if (-not $PathEnv.Contains($AhkDir)) {
+        [Environment]::SetEnvironmentVariable("PATH", "$PathEnv;$AhkDir", "User")
+        Write-Host "Added $AhkDir to PATH" -ForegroundColor Green
+    }
 
-# Create symbolic links between AHK scripts and Windows startup folder
-Write-Host "Setting up AutoHotkey scripts to run at startup..." -ForegroundColor Cyan
-$StartupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+    # Create symbolic links between AHK scripts and Windows startup folder
+    Write-Host "Setting up AutoHotkey scripts to run at startup..." -ForegroundColor Cyan
+    $StartupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
 
-# Check if there are any AHK scripts to link
-$AhkScripts = Get-ChildItem -Path "$AhkDir\*.ahk" -ErrorAction SilentlyContinue
-if ($AhkScripts) {
-    foreach ($script in $AhkScripts) {
-        $shortcutPath = "$StartupFolder\$($script.BaseName).lnk"
+    # Check if there are any AHK scripts to link
+    $AhkScripts = Get-ChildItem -Path "$AhkDir\*.ahk" -ErrorAction SilentlyContinue
+    if ($AhkScripts) {
+        foreach ($script in $AhkScripts) {
+            $shortcutPath = "$StartupFolder\$($script.BaseName).lnk"
 
-        # Create a shortcut to the AHK script in the startup folder
-        $WshShell = New-Object -ComObject WScript.Shell
-        $Shortcut = $WshShell.CreateShortcut($shortcutPath)
-        $Shortcut.TargetPath = $script.FullName
-        $Shortcut.Save()
+            # Create a shortcut to the AHK script in the startup folder
+            $WshShell = New-Object -ComObject WScript.Shell
+            $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+            $Shortcut.TargetPath = $script.FullName
+            $Shortcut.Save()
 
-        Write-Host "Created startup shortcut for $($script.Name)" -ForegroundColor Green
+            Write-Host "Created startup shortcut for $($script.Name)" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "No AHK scripts found in $AhkDir directory" -ForegroundColor Yellow
+        Write-Host "You can add your AHK scripts to this directory later" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "No AHK scripts found in $AhkDir directory" -ForegroundColor Yellow
-    Write-Host "You can add your AHK scripts to this directory later" -ForegroundColor Yellow
+    Write-Host "Skipping AutoHotkey installation" -ForegroundColor Yellow
+}
+
+# Add Komorebi tiling window manager installation
+Write-Host "Do you want to install Komorebi tiling window manager? (y/n)" -ForegroundColor Cyan
+$installKomorebi = Read-Host
+if ($installKomorebi -eq "y") {
+    Write-Host "Installing Komorebi and WHKD..." -ForegroundColor Yellow
+    winget install LGUG2Z.komorebi -e --source winget
+    winget install LGUG2Z.whkd -e --source winget
+    Write-Host "Komorebi and WHKD installed successfully" -ForegroundColor Green
+
+    # Define Komorebi config paths
+    $KomorebiConfigDir = "$DotfilesDir\komorebi"
+    $WhkdConfigDir = "$DotfilesDir\whkd"
+    $KomorebiConfigTarget = "$env:USERPROFILE\komorebi.json"
+    $KomorebiBarConfigTarget = "$env:USERPROFILE\komorebi.bar.json"
+    $WhkdConfigTarget = "$env:USERPROFILE\.config\whkdrc"
+
+    # Create symbolic links for Komorebi configuration
+    Write-Host "Setting up Komorebi configuration..." -ForegroundColor Cyan
+
+    # Check if source config files exist in dotfiles repo
+    $KomorebiConfigSource = "$KomorebiConfigDir\komorebi.json"
+    $KomorebiBarConfigSource = "$KomorebiConfigDir\komorebi.bar.json"
+    $WhkdConfigSource = "$WhkdConfigDir\whkdrc"
+
+    # Create .config directory if it doesn't exist
+    $ConfigDir = "$env:USERPROFILE\.config"
+    if (-not (Test-Path -Path $ConfigDir)) {
+        New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+        Write-Host "Created .config directory" -ForegroundColor Green
+    }
+
+    # Create directory if it doesn't exist
+    if (-not (Test-Path -Path $KomorebiConfigDir)) {
+        New-Item -ItemType Directory -Path $KomorebiConfigDir -Force | Out-Null
+        Write-Host "Created Komorebi config directory at $KomorebiConfigDir" -ForegroundColor Green
+    }
+
+    # Function to create symbolic links from existing config files
+    function Create-ConfigLink {
+        param (
+            [string]$SourcePath,
+            [string]$TargetPath,
+            [string]$ConfigName
+        )
+
+        # Check if source config exists
+        if (-not (Test-Path -Path $SourcePath)) {
+            Write-Host "Warning: $ConfigName config file not found at $SourcePath" -ForegroundColor Yellow
+            Write-Host "Please make sure to add your $ConfigName config to your dotfiles repository" -ForegroundColor Yellow
+            return
+        }
+
+        # Remove existing file if it exists
+        if (Test-Path -Path $TargetPath) {
+            Remove-Item -Path $TargetPath -Force
+            Write-Host "Removed existing $ConfigName config" -ForegroundColor Yellow
+        }
+
+        # Create symbolic link
+        New-Item -ItemType SymbolicLink -Path $TargetPath -Target $SourcePath -Force | Out-Null
+        Write-Host "Linked $ConfigName config from dotfiles" -ForegroundColor Green
+    }
+
+    # Create the symbolic links for all Komorebi configs
+    Create-ConfigLink -SourcePath $KomorebiConfigSource -TargetPath $KomorebiConfigTarget -ConfigName "Komorebi"
+    Create-ConfigLink -SourcePath $KomorebiBarConfigSource -TargetPath $KomorebiBarConfigTarget -ConfigName "Komorebi-bar"
+    Create-ConfigLink -SourcePath $WhkdConfigSource -TargetPath $WhkdConfigTarget -ConfigName "WHKD"
+
+    # Register Komorebi and WHKD to run at startup
+    Write-Host "Registering Komorebi and WHKD to run at startup..." -ForegroundColor Cyan
+    $komorebiStartupPath = "$StartupFolder\komorebi.lnk"
+    $whkdStartupPath = "$StartupFolder\whkd.lnk"
+
+    $WshShell = New-Object -ComObject WScript.Shell
+
+    # Create Komorebi shortcut
+    $KomorebiShortcut = $WshShell.CreateShortcut($komorebiStartupPath)
+    $KomorebiShortcut.TargetPath = "komorebic.exe"
+    $KomorebiShortcut.Arguments = "start --whkd --bar"
+    $KomorebiShortcut.Save()
+
+    # Create WHKD shortcut
+    $WhkdShortcut = $WshShell.CreateShortcut($whkdStartupPath)
+    $WhkdShortcut.TargetPath = "whkd.exe"
+    $WhkdShortcut.Save()
+
+    Write-Host "Komorebi setup complete and configured to run at startup" -ForegroundColor Green
+    Write-Host "You can modify your Komorebi configuration by editing files in $KomorebiConfigDir" -ForegroundColor Cyan
+} else {
+    Write-Host "Skipping Komorebi installation" -ForegroundColor Yellow
 }
 
 # Set up SSH keys
@@ -194,8 +293,20 @@ Write-Host "- Git installed and configured"
 Write-Host "- Dotfiles repository cloned to $DotfilesDir"
 Write-Host "- WSL installed (if needed)"
 Write-Host "- SSH keys set up"
-Write-Host "- AutoHotkey installed and scripts set to run at startup"
+if ($installAhk -eq "y") {
+    Write-Host "- AutoHotkey installed and scripts set to run at startup"
+}
+if ($installKomorebi -eq "y") {
+    Write-Host "- Komorebi tiling window manager installed and configured"
+    Write-Host "- WHKD hotkey daemon installed and configured"
+}
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host "1. Restart your computer if WSL was just installed"
-Write-Host "2. Add any additional AutoHotkey scripts to $AhkDir"
+if ($installAhk -eq "y") {
+    Write-Host "2. Add any additional AutoHotkey scripts to $AhkDir"
+}
+if ($installKomorebi -eq "y") {
+    Write-Host "3. Customize your Komorebi configuration in $KomorebiConfigDir"
+    Write-Host "4. Run `komorebic start --whkd --bar` to start Komorebi or restart your computer"
+}
