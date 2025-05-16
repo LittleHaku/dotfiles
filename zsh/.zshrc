@@ -6,7 +6,7 @@ source "${ZINIT_HOME}/zinit.zsh"
 
 # Add pure theme
 zinit ice pick"async.zsh" src"pure.zsh" # with zsh-async library that's bundled with it.
-zinit light sindresorhus/pure  
+zinit light sindresorhus/pure
 
 # Add ZSH plugins
 zinit light zdharma-continuum/fast-syntax-highlighting
@@ -15,3 +15,13 @@ zinit light zsh-users/zsh-completions
 
 # Load completions
 autoload -U compinit && compinit
+
+# Add PyEnv
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d "$PYENV_ROOT/bin" ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+fi
+
+# Add UV
+. "$HOME/.local/bin/env"
