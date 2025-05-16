@@ -1,3 +1,17 @@
+
+
+# Zinit Plugin Manager
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
+
+# For profiling - comment out for normal use
+# zmodload zsh/zprof
+
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
+
 # History configurations
 HISTFILE=~/.zsh_history
 HISTSIZE=5000
@@ -11,14 +25,7 @@ setopt hist_save_no_dups    # do not save duplicates
 setopt hist_ignore_dups     # ignore duplicated commands history list
 setopt hist_find_no_dups    # do not save duplicates
 
-# Zinit Plugin Manager
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
-[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
-[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-source "${ZINIT_HOME}/zinit.zsh"
 
-# For profiling - comment out for normal use
-# zmodload zsh/zprof
 
 # Pure theme - light priority
 zinit ice lucid pick"async.zsh" src"pure.zsh" # NO wait'!'
