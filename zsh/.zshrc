@@ -4,18 +4,18 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
-# Measure startup time - add at the beginning
+# For profiling - comment out for normal use
 zmodload zsh/zprof
 
 # Pure theme - light priority
 zinit ice wait'!' lucid pick"async.zsh" src"pure.zsh"
 zinit light sindresorhus/pure
 
-# Syntax highlighting and suggestions - can be deferred a bit
+# Syntax highlighting, suggestions, and completions
 zinit ice wait lucid atload"_zsh_autosuggest_start"
 zinit light zsh-users/zsh-autosuggestions
 
-zinit ice wait lucid
+zinit ice wait lucid atinit"zicompinit; zicdreplay"
 zinit light zsh-users/zsh-completions
 
 # Load this last as it's the heaviest
@@ -39,19 +39,17 @@ zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
 zinit ice wait lucid
 zinit light agkozak/zsh-z
 
-# Load completions
-zinit ice wait lucid atinit"zicompinit; zicdreplay"
-zinit light zdharma-continuum/fast-syntax-highlighting
-
 # Add PyEnv
 export PYENV_ROOT="$HOME/.pyenv"
+# Add to PATH immediately if other tools/aliases might need pyenv commands before full init
 [[ -d "$PYENV_ROOT/bin" ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init -)"
-fi
+# Defer pyenv init - adjust wait time if needed
+zinit ice lucid wait'!' atload'eval "$(pyenv init - zsh)"'
+zinit snippet /dev/null # Dummy snippet for atload
 
-# Add UV
-. "$HOME/.local/bin/env"
+# Add UV (defer if not immediately needed)
+zinit ice lucid wait'!' # Adjust wait time
+zinit snippet "$HOME/.local/bin/env"
 
 ##################
 # Custom Aliases #
@@ -79,7 +77,6 @@ alias ziup='zinit update'
 # update zinit plugins
 alias ziupg='zinit update --all'
 
-
 # folder usage
 alias usage='du -h -d1'
 
@@ -92,7 +89,7 @@ alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
 
 
-# End startup time measurement - add at the end of your .zshrc
+# End startup time measurement - comment out for normal use
 if [[ "$PROFILE_STARTUP" == true ]]; then
   zprof
 fi
