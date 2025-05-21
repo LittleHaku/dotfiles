@@ -65,13 +65,14 @@ ask_yes_no() {
 install_core_packages() {
     msg "Updating package list and installing core packages..."
     sudo apt update
+    # Ensure there are NO comments or blank lines between package names in this block
     sudo apt install -y \
         git \
         zsh \
         curl \
         stow \
         wget \
-        xclip \ # Added xclip for SSH key copying
+        xclip \
         build-essential \
         libssl-dev \
         zlib1g-dev \
@@ -87,7 +88,7 @@ install_core_packages() {
         liblzma-dev \
         python3-openssl \
         ca-certificates
-    info "Core packages installed."
+    info "Core packages installed. (Includes git, zsh, curl, stow, wget, xclip, build-essential, etc.)"
 }
 
 install_zsh_and_set_default() {
