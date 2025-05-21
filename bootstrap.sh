@@ -322,8 +322,19 @@ install_uv() {
 }
 install_neovim() {
     if check_command nvim; then info "Neovim already installed."; return; fi
-    msg "Installing Neovim..."; if sudo apt install -y neovim; then info "Neovim installed via apt.";
-    else warn "Failed to install Neovim via apt."; fi
+    msg "Installing latest stable Neovim from PPA..."
+    sudo add-apt-repository -y ppa:neovim-ppa/stable
+    sudo apt update
+    if sudo apt install -y neovim; then 
+        info "Latest stable Neovim installed from PPA."
+    else 
+        warn "Failed to install Neovim from PPA. Falling back to system package..."
+        if sudo apt install -y neovim; then 
+            info "Neovim installed via system package."
+        else 
+            warn "Failed to install Neovim via system package."
+        fi
+    fi
 }
 install_tpm() {
     local tpm_path="$HOME/.tmux/plugins/tpm"; if [ -d "$tpm_path" ]; then info "TPM already installed."; return; fi
