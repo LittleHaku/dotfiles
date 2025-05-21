@@ -39,6 +39,12 @@ In admin rights PowerShell:
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1'))
 ```
 
+### Linux
+
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)
+```
+
 ```bash
 sudo apt update && sudo apt upgrade
 sudo apt install zsh
