@@ -1,263 +1,78 @@
 # dotfiles
 
-## Packages
+My personal configurations for a productive development environment, managed with `stow` and an automated bootstrap script.
 
-`pyenv` para control de versiones de Python
+This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, PyEnv, uv, Neovim, and other CLI tools.
 
-### APT 
-
-- zsh
-- stow
-- lsd
-- bat
-- neovim
-- ranger
-
-### PIP
-
-- [pipreqs](https://github.com/bndr/pipreqs): generate the requirements.txt but correctly and without saving every single thing you have
-
-## WSL
-
-https://dev.to/front-commerce/set-up-a-wsl-development-environment-44jk
-
-Move to another drive:
-
-```
-wsl --unmount
-# cd to the directory you want
-wsl --manage Ubuntu --move .
-```
+---
 
 ## Installation
 
+### Linux: Bootstrap Script (Recommended)
+
+This script automates the entire setup process.
+
+**1. Run:**
+   ```bash
+   bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)
+   ```
+   *(Or with `curl`: `bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)`) *
+
+**2. Follow Prompts:**
+   Requires `sudo` privileges. It will guide you through SSH key setup for GitHub, cloning these dotfiles, and installing software.
+
+**Non-Interactive Mode:**
+   ```bash
+   bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh) -- \
+     --non-interactive \
+     --git-email "your_github_email@example.com" \
+     --git-name "Your Git Name" \
+     --dotfiles-ssh-url "git@github.com:LittleHaku/dotfiles.git"
+   ```
+   **Arguments:** `--git-email`, `--git-name`, `--dotfiles-dir`, `--dotfiles-ssh-url`, `--yes` (or `-y`, `--non-interactive`).
+
+---
+
 ### Windows
-
 In admin rights PowerShell:
-
-```
+```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1'))
 ```
 
-### Linux
-
-```bash
-bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)
+---
+## WSL
+To move WSL distribution to another drive:
+```powershell
+wsl --unmount
+# cd to the target directory in PowerShell
+wsl --manage Ubuntu --move . # Replace 'Ubuntu' if your distro name is different
 ```
+---
+## STOW (Dotfile Management)
 
-```bash
-sudo apt update && sudo apt upgrade
-sudo apt install zsh
-sudo apt install lsd
-sudo apt install bat
-sudo apt install stow
-sudo apt insatll neovim
-sudo apt insatll ranger
-sudo apt install nodejs
-sudo apt install npm 
-```
+These dotfiles use `GNU Stow`. The bootstrap script handles stowing `zsh` and `tmux` packages from `~/dotfiles` to `~`.
+For more on Stow, see this [excellent explanation by /u/Trollw00t](https://www.reddit.com/r/archlinux/comments/bloeme/comment/emq8f5k/).
 
-- install oh-my-zsh: https://ohmyz.sh/#install
+The structure for Stow means a file like `~/.config/tmux/tmux.conf` would be stored as `~/dotfiles/tmux/.config/tmux/tmux.conf`.
 
-```
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
+---
+## PyEnv Cheatsheet
 
-- install pyenv: https://github.com/pyenv/pyenv?tab=readme-ov-file#installation (install the dependencies for building too)
-```
-curl -fsSL https://pyenv.run | bash
-```
-python build dependencies:
-```
-sudo apt update; sudo apt install build-essential libssl-dev zlib1g-dev \
-libbz2-dev libreadline-dev libsqlite3-dev curl git \
-libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-```
+- `pyenv install <version>`: Install a Python version.
+- `pyenv versions`: List installed versions.
+- `pyenv global <version>`: Set global Python version.
+- `pyenv local <version>`: Set Python version for current directory (creates `.python-version`).
+- `pyenv shell <version>`: Set Python version for current shell session.
+- `pyenv uninstall <version>`: Uninstall a Python version.
+- `pyenv update`: Update PyEnv.
 
+---
+## TMUX Cheatsheet
 
+My Tmux leader key is `Ctrl+s`. Tmux configuration is typically at `~/.config/tmux/tmux.conf` (managed by `stow`).
+For a general Tmux cheatsheet, see: [tmuxcheatsheet.com](https://tmuxcheatsheet.com/).
 
-```bash
-git clone git@github.com:LittleHaku/dotfiles.git
-```
-
-```bash
-cd dotfiles
-```
-
-```bash
-stow tmux
-stow zsh
-stow config
-stow bashrc
-```
-
-Maybe for some of the stow you get conflict, in which case, delete the one in home (or put it as .bkp)
-
-Install the Oh My Zsh plugins after stow
-- zsh syntax highlight: https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
-```
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-```
-
-- zsh autosuggestions: https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md
-```
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-```
-
-## Current
-
-- Apps: (modded) catppuccin-mocha
-- Cursor: Sanity-Cursor
-- Icons: Tela purple theme
-- Shell: (modded) catppuccin-mocha
-- Chrome: Catppuccin Chrome Theme - Mocha
-- Terminal: Kitty
-
-## Screenshots
-
-![desktop1](/screenshots/w1.png)
-![desktop2](/screenshots/w2.png)
-![desktop3](/screenshots/w3.png)
-![desktop4](/screenshots/w4.png)
-
-## Keybinds
-
-- super+0..9: desktop
-- super+w: rename desktop
-- super+enter: new terminal
-- alt+space: search bar
-- ctrl+s: tmux leader
-## PyEnv instructions
-
-- `pyenv install <pythonversion>`
-- `pyenv shell <version>` -- select just for current shell session
-- `pyenv local <version>` -- creates .python-version file which makes sure that whener you enter there the virtualenv gets started
-- `pyenv global <version>` -- select globally for your user account
-- `pyenv uninstall <version>`
-- `pyenv update`
-- Add a `.python-version` file in the directore with the `<name>` will autosource the venv
-
-### [Pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)
-
-- `pyenv virtualenv <pythonver> <name>` create a virtual env with this name and version
-- - `pyenv virtualenvs` see all virtual env
-- `pyenv virtualenv-delete`
-- `pyenv activate <name>`
-- `pyenv deactivate`
-
-Usually is `pyenv install <version>` followed by `pyenv virtualenv <version> <name>`
-
-## STOW Instructions
-
-STOW Tutorial: https://www.youtube.com/watch?v=y6XCebnB9gs
-
-TLDR; You place the dotfiles folder in your home directory so `~/dotfiles` and here replicate the same structure, that is:
-A file that would be in `~` you put in `~/dotfiles` and if it should be in `~/zsh` you place it in `~/dotfiles/zsh`, then remove the originals from the home (making sure you still have them in the `dotfiles`, so just do `mv` and move them) and inside the `dotfiles` directory do `stow .` for all or `stow <name>` and it will create a symbolic link in the parent folder, i.e. home `~` (dont worry the `.git` dir won't get linked)
-
-Create a git repo directly in your home folder, .g. `~/dotfiles`
-
-In this directory, you create a folder with a *"package name"* and in it the exact folder structure this app has it's config files in your home folder.
-
-Let's take `i3` for example, which has its config file in `~/.config/i3/config`
-
-Move this file into `~/dotfiles/i3/.config/i3/config`. Now you can `git add` and `git commit` it, like usual.
-
-In your terminal, `cd dotfiles`. From there, you can do this:
-
-```bash
-stow i3
-```
-
-This will enter the folder `i3`, which we created (as the mentioned "package name") and everything in it will be **symlinked** exactly one directory above where you currently are.
-
-This means, from `~/dotfiles` it jumps one folder up (so it's `~`) and there the folder structure inside your *"i3"* package will be *symlinked*.
-
-This means your moved config file now is at the same place as before, but symlinks into your git repo. Now you can edit your config as usual and your changes are automatically tracked. Clone on another device, stow i3 and boom! you have the same config there.
-
-If you want to stow your `~/.Xresources`, the file would be e.g. at `~/dotfiles/Xresources/.Xresources` and you would do a `stow Xresources` in there.
-
-You can also do your whole configuration into one *"package"*, so you just have to stow once.
-
-Very easy stuff to set up and you only need `git` and `stow` for it.
-
-`yadm` is, a wrapper for this workflow and does some things on top of it. E.g. you can append your hostname at the file name, so `yadm` checks which file for which hostname it should link.
-
-For example two files for two machines:
-
-```zsh
-~/dotfiles/i3/.config/i3/config##myworkstation
-~/dotfiles/i3/.config/i3/config##trollwutslaptop
-```
-
-Source: <https://www.reddit.com/r/archlinux/comments/bloeme/dot_files_backup_tool/>
-
-all credit to most excellent post from [/u/Trollw00t](https://www.reddit.com/user/Trollw00t) explaining how to use `stow` + `git`
-
-## ZSH
-
-<https://www.youtube.com/watch?v=MSPu-lYF-A8>
-
-## TMUX
-
-- **reload config**: `leader + R`
-- **fetch plugins**: `leader + I`
-- **right click menu**: mantener click derecho
-
-## Copy
-
-- **copiar normal**: seleccionar text con el raton usando shift, y luego click derecho manteniendo el shift y copiar
-- **enter copy mode**: `leader + [` o scroll mouse
-- **paste tmux buffer**: `leader + ]`
-- **start selecting text**: `space`
-- **copy text**: `enter`
-- **copy it to clipboard**: `leader + y`
-
-### Panes
-
-- **new pane vertical**: `leader+%`
-- **new pane horizontal**: `leader+"`
-- **close pane**: `leader+x` or `ctrl+d`
-- **move around panes**: `leader+h,j,k,l` (vim style)
-- **rotate panes**: `leader+space`
-- **master navigate**: `leader+w`
-
-### Windows
-
-- **new window**: `leader+c`
-- **close window**: `leader+&`
-- **rename window**: `leader+,`
-- **go to window n**: `leader+0..9`
-- **go to next window**: `leader+n`
-- **go to previous window**: `leader+p`
-- **go to last window**: `leader+l` (ahora no va x haber puesto lo de vim)
-- **master navigate**: `leader+w`
-
-### Sessions
-
-- **list sessions**: `tmux ls` o con zsh `tl`
-- **rename session**: `leader+$`
-- **dettach**: `leader+d`
-- **new session with name**: `tmux new -s nombre` o `ts`
-- **attach**: `tmux attach -t nombre` o `tmux a -t nombre` o `ta`
-- **attack to last session**: `tmux attach` o `tmux a`
-- **show all sessions**: `leader+s`
-- **close session**: `tmux kill-ses -t nombre` o `tkss`
-- **close all except current**: `tmux kill-ses -a`
-- **close all except name**: `tmux kill-ses -a -t nombre`
-- **close all sessions**: `tksv` o `tmux kill-server`
-- **save session with tmux resurrect**: `leader + ctrl s`
-- **restore session with tmux resurrect**: `leader + ctrl r`
-
-### Others
-
-- **reload config**: `leader+r`
-
-## Gnome settings
-
-Save:
-`dconf dump / > gnome-settings.ini`
-
-Load:
-`dconf load / < dconf-settings.ini`
-
-
+**Key Custom Actions:**
+- **Reload Tmux Config:** `leader + R` (ensure this is mapped in your `tmux.conf`).
+- **Install TPM Plugins:** `leader + I` (capital 'i') (after adding them to `tmux.conf`).
+- **Vim-style navigation between panes:** `leader + h, j, k, l` (if configured).
