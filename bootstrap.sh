@@ -8,12 +8,13 @@ set -u
 set -o pipefail
 
 # --- Configuration ---
-DOTFILES_DIR="${HOME}/dotfiles" # Default location of your dotfiles for stow
-GIT_USER_NAME=""                # Leave blank to be prompted
-GIT_USER_EMAIL=""               # Leave blank to be prompted
+DOTFILES_DIR_DEFAULT="${HOME}/dotfiles"
+GIT_USER_NAME=""
+GIT_USER_EMAIL=""
 FZF_INSTALL_DIR="${HOME}/.fzf"
 SSH_KEY_PATH_ED25519="${HOME}/.ssh/id_ed25519"
 SSH_KEY_PATH_RSA="${HOME}/.ssh/id_rsa"
+NON_INTERACTIVE=false # Global flag for non-interactive mode
 
 # --- Helper Functions ---
 msg() {
@@ -38,6 +39,11 @@ check_command() {
 }
 
 ask_yes_no() {
+    if [ "$NON_INTERACTIVE" = true ]; then
+        info "Non-interactive mode: Answering YES to '$1'"
+        return 0 # Auto-yes in non-interactive mode
+    fi
+
     local question="$1"
     local default_answer="${2:-yes}" # Default to yes if not specified
     local answer
@@ -65,7 +71,6 @@ ask_yes_no() {
 install_core_packages() {
     msg "Updating package list and installing core packages..."
     sudo apt update
-    # Ensure there are NO comments or blank lines between package names in this block
     sudo apt install -y \
         git \
         zsh \
@@ -146,16 +151,19 @@ setup_ssh_github() {
 
     if [[ -z "$key_to_display" ]] || ask_yes_no "Generate a new ed25519 SSH key for GitHub?"; then
         local ssh_email
-        if [[ -n "$GIT_USER_EMAIL" ]]; then
+        if [[ -n "$GIT_USER_EMAIL" ]]; then # Use configured git email if available
             read -r -p "Enter your email for the SSH key [default: $GIT_USER_EMAIL]: " ssh_email_input
             ssh_email=${ssh_email_input:-$GIT_USER_EMAIL}
-        else
-            while [[ -z "$ssh_email" ]]; do read -r -p "Enter your email for the SSH key: " ssh_email; done
+        else # Otherwise, prompt for it
+             while [[ -z "$ssh_email" ]]; do
+                read -r -p "Enter your email for the SSH key (used for GitHub): " ssh_email
+             done
         fi
+
 
         info "Generating ed25519 SSH key..."
         mkdir -p "${HOME}/.ssh" && chmod 700 "${HOME}/.ssh"
-        rm -f "${SSH_KEY_PATH_ED25519}" "${SSH_KEY_PATH_ED25519}.pub" # Remove old ed25519 if regenerating
+        rm -f "${SSH_KEY_PATH_ED25519}" "${SSH_KEY_PATH_ED25519}.pub"
         ssh-keygen -t ed25519 -C "$ssh_email" -f "$SSH_KEY_PATH_ED25519" -N ""
         info "SSH key generated at $SSH_KEY_PATH_ED25519"
         warn "The key was generated WITHOUT a passphrase for script simplicity. For higher security, consider generating one with a passphrase manually."
@@ -173,10 +181,40 @@ setup_ssh_github() {
         echo -e "\033[0m"
         info "2. Go to GitHub > Settings > SSH and GPG keys > New SSH key."
         info "3. Paste the key and give it a title (e.g., 'Dev Laptop $(hostname)')."
-        read -r -p "Press [Enter] to continue after you've added the key to GitHub..."
+        if [ "$NON_INTERACTIVE" = false ]; then
+            read -r -p "Press [Enter] to continue after you've added the key to GitHub..."
+        else
+            info "Non-interactive mode: Assuming SSH key has been handled externally or will be handled later."
+        fi
     else
         info "Skipping SSH key generation."
     fi
+}
+
+clone_dotfiles_repo_if_needed() {
+    local dotfiles_target_dir="$1" # Pass DOTFILES_DIR as an argument
+    if [[ ! -d "$dotfiles_target_dir" ]]; then
+        warn "Dotfiles directory not found at $dotfiles_target_dir."
+        if ask_yes_no "Do you want to clone your dotfiles repository now?"; then
+            local dotfiles_repo_url
+            while [[ -z "$dotfiles_repo_url" ]]; do
+                read -r -p "Enter the Git URL for your dotfiles repository (HTTPS or SSH): " dotfiles_repo_url
+            done
+            info "Cloning dotfiles from $dotfiles_repo_url to $dotfiles_target_dir..."
+            if git clone "$dotfiles_repo_url" "$dotfiles_target_dir"; then
+                info "Dotfiles cloned to $dotfiles_target_dir."
+            else
+                error "Failed to clone dotfiles repository. Please check the URL and ensure you have access."
+                return 1 # Signal failure
+            fi
+        else
+            error "Dotfiles directory not found and not cloned. Cannot proceed with stowing."
+            return 1 # Signal failure
+        fi
+    else
+        info "Dotfiles directory found at $dotfiles_target_dir."
+    fi
+    return 0 # Signal success
 }
 
 
@@ -222,6 +260,36 @@ install_uv() {
     curl -LsSf https://astral.sh/uv/install.sh | sh
     info "uv installation script completed. Your .zshrc should handle PATH setup."
 }
+
+install_neovim() {
+    if check_command nvim; then
+        info "Neovim is already installed."
+        return
+    fi
+    msg "Installing Neovim..."
+    # Using apt, which might not be the absolute latest
+    if sudo apt install -y neovim; then
+        info "Neovim installed via apt."
+    else
+        warn "Failed to install Neovim via apt. Consider installing from source, a PPA, or GitHub releases for the latest version."
+    fi
+}
+
+install_tpm() {
+    local tpm_path="$HOME/.tmux/plugins/tpm"
+    if [ -d "$tpm_path" ]; then
+        info "TPM (Tmux Plugin Manager) seems to be already installed at $tpm_path."
+        return
+    fi
+    msg "Installing TPM (Tmux Plugin Manager)..."
+    if git clone https://github.com/tmux-plugins/tpm "$tpm_path"; then
+        info "TPM installed to $tpm_path."
+        info "To use TPM: add plugins to your .tmux.conf and press 'prefix + I' (capital i) from within Tmux to install them."
+    else
+        error "Failed to clone TPM."
+    fi
+}
+
 
 install_bat() {
     if check_command batcat || check_command bat; then
@@ -269,40 +337,58 @@ configure_git() {
     current_name=$(git config --global user.name || true)
     current_email=$(git config --global user.email || true)
 
-    if [[ -z "$GIT_USER_NAME" ]]; then
-        if [[ -n "$current_name" ]]; then
-            read -r -p "Enter your Git user name [current: $current_name]: " GIT_USER_NAME_INPUT
-            GIT_USER_NAME=${GIT_USER_NAME_INPUT:-$current_name}
+    if [[ -z "$GIT_USER_NAME" ]]; then # Only prompt if not set by script argument
+        if [ "$NON_INTERACTIVE" = true ] && [[ -z "$current_name" ]]; then
+            warn "Non-interactive mode: Git user name not set and no current global config. Please set it manually later."
+        elif [ "$NON_INTERACTIVE" = true ] && [[ -n "$current_name" ]]; then
+            GIT_USER_NAME="$current_name" # Use existing in non-interactive
+            info "Non-interactive mode: Using existing global Git user name: $GIT_USER_NAME"
         else
-            while [[ -z "$GIT_USER_NAME" ]]; do read -r -p "Enter your Git user name: " GIT_USER_NAME; done
+            if [[ -n "$current_name" ]]; then
+                read -r -p "Enter your Git user name [current: $current_name]: " GIT_USER_NAME_INPUT
+                GIT_USER_NAME=${GIT_USER_NAME_INPUT:-$current_name}
+            else
+                while [[ -z "$GIT_USER_NAME" ]]; do read -r -p "Enter your Git user name: " GIT_USER_NAME; done
+            fi
         fi
     fi
-    if [[ -z "$GIT_USER_EMAIL" ]]; then
-        if [[ -n "$current_email" ]]; then
-            read -r -p "Enter your Git user email [current: $current_email]: " GIT_USER_EMAIL_INPUT
-            GIT_USER_EMAIL=${GIT_USER_EMAIL_INPUT:-$current_email}
+
+    if [[ -z "$GIT_USER_EMAIL" ]]; then # Only prompt if not set by script argument
+         if [ "$NON_INTERACTIVE" = true ] && [[ -z "$current_email" ]]; then
+            warn "Non-interactive mode: Git user email not set and no current global config. Please set it manually later."
+        elif [ "$NON_INTERACTIVE" = true ] && [[ -n "$current_email" ]]; then
+            GIT_USER_EMAIL="$current_email" # Use existing in non-interactive
+            info "Non-interactive mode: Using existing global Git user email: $GIT_USER_EMAIL"
         else
-            while [[ -z "$GIT_USER_EMAIL" ]]; do read -r -p "Enter your Git user email: " GIT_USER_EMAIL; done
+            if [[ -n "$current_email" ]]; then
+                read -r -p "Enter your Git user email [current: $current_email]: " GIT_USER_EMAIL_INPUT
+                GIT_USER_EMAIL=${GIT_USER_EMAIL_INPUT:-$current_email}
+            else
+                while [[ -z "$GIT_USER_EMAIL" ]]; do read -r -p "Enter your Git user email: " GIT_USER_EMAIL; done
+            fi
         fi
     fi
-    git config --global user.name "$GIT_USER_NAME"
-    git config --global user.email "$GIT_USER_EMAIL"
-    info "Git user name set to: $GIT_USER_NAME"
-    info "Git user email set to: $GIT_USER_EMAIL"
-    info "Git configured."
+
+    if [[ -n "$GIT_USER_NAME" ]]; then
+        git config --global user.name "$GIT_USER_NAME"
+        info "Git user name set to: $GIT_USER_NAME"
+    fi
+    if [[ -n "$GIT_USER_EMAIL" ]]; then
+        git config --global user.email "$GIT_USER_EMAIL"
+        info "Git user email set to: $GIT_USER_EMAIL"
+    fi
+    info "Git configuration check complete."
 }
 
 stow_dotfiles() {
+    local dotfiles_actual_dir="$1"
     if ! check_command stow; then
         error "Stow is not installed (should have been in core packages)."
         return 1
     fi
-    if [[ ! -d "$DOTFILES_DIR" ]]; then
-        error "Dotfiles directory not found at $DOTFILES_DIR. Please clone or create it first."
-        return 1
-    fi
-    msg "Stowing dotfiles from $DOTFILES_DIR..."
-    pushd "$DOTFILES_DIR" > /dev/null
+    # Dotfiles directory existence is now checked by clone_dotfiles_repo_if_needed
+    msg "Stowing dotfiles from $dotfiles_actual_dir..."
+    pushd "$dotfiles_actual_dir" > /dev/null
     local stow_packages=("zsh" "tmux") # Customize as needed
     info "Attempting to stow: ${stow_packages[*]}"
     for pkg in "${stow_packages[@]}"; do
@@ -311,7 +397,7 @@ stow_dotfiles() {
             stow --restow --target="$HOME" "$pkg"
             info "$pkg stowed."
         else
-            warn "Stow package directory '$pkg' not found in $DOTFILES_DIR. Skipping."
+            warn "Stow package directory '$pkg' not found in $dotfiles_actual_dir. Skipping."
         fi
     done
     popd > /dev/null
@@ -320,29 +406,54 @@ stow_dotfiles() {
 
 # --- Main Execution ---
 main() {
-    msg "Starting Development Environment Setup"
+    local DOTFILES_DIR="$DOTFILES_DIR_DEFAULT" # Use default, can be overridden by arg
 
+    # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --git-name) GIT_USER_NAME="$2"; shift 2 ;;
             --git-email) GIT_USER_EMAIL="$2"; shift 2 ;;
             --dotfiles-dir) DOTFILES_DIR="$2"; shift 2 ;;
+            --yes | -y | --non-interactive) NON_INTERACTIVE=true; shift ;;
             *) error "Unknown option: $1" ;;
         esac
     done
 
-    install_core_packages       # Essential, non-optional (now includes xclip)
-    install_zsh_and_set_default # Zsh itself is core, setting default is prompted
-    configure_git               # Essential for dev work, prompts for info
-    setup_ssh_github            # Prompted internally, now with xclip support
+    msg "Starting Development Environment Setup (Interactive: $([ "$NON_INTERACTIVE" = true ] && echo "NO" || echo "YES"))"
 
+
+    install_core_packages
+    install_zsh_and_set_default
+    configure_git # Git email is used for SSH key prompt, so configure git first
+    setup_ssh_github # Setup SSH keys before potentially cloning dotfiles via SSH
+
+    # Clone dotfiles repo if it doesn't exist
+    if ! clone_dotfiles_repo_if_needed "$DOTFILES_DIR"; then
+        # If cloning failed or was skipped, and dotfiles are essential, exit or handle.
+        # For now, stow_dotfiles will also error if dir is not found.
+        warn "Dotfiles directory might not be available. Stowing might fail."
+    fi
+
+
+    if ask_yes_no "Install Neovim (text editor)?"; then install_neovim; else info "Skipping Neovim."; fi
     if ask_yes_no "Install fzf (fuzzy finder) from Git?"; then install_fzf_from_git; else info "Skipping fzf."; fi
     if ask_yes_no "Install PyEnv (Python version manager)?"; then install_pyenv; else info "Skipping PyEnv."; fi
     if ask_yes_no "Install uv (Python package/virtual env manager)?"; then install_uv; else info "Skipping uv."; fi
     if ask_yes_no "Install bat (cat clone with syntax highlighting)?"; then install_bat; else info "Skipping bat."; fi
     if ask_yes_no "Install lsd (modern ls with icons)?"; then install_lsd; else info "Skipping lsd."; fi
+    if ask_yes_no "Install TPM (Tmux Plugin Manager)?"; then install_tpm; else info "Skipping TPM."; fi
 
-    stow_dotfiles # Stow after tools are available, as dotfiles might reference them
+    # Stow dotfiles - will only succeed if DOTFILES_DIR exists
+    if [[ -d "$DOTFILES_DIR" ]]; then
+        if ask_yes_no "Proceed to stow dotfiles from $DOTFILES_DIR?"; then
+            stow_dotfiles "$DOTFILES_DIR"
+        else
+            info "Skipping stowing dotfiles."
+        fi
+    else
+        warn "Dotfiles directory $DOTFILES_DIR not found. Skipping stowing."
+    fi
+
 
     msg "Setup script finished!"
     info "IMPORTANT: Some changes (like default shell or SSH keys) may require you to:"
