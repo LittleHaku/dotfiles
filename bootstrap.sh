@@ -382,7 +382,7 @@ stow_dotfiles() {
     if [[ ! -d "$dotfiles_actual_dir" ]]; then error "Dotfiles dir $dotfiles_actual_dir not found."; return 1; fi
     msg "Stowing dotfiles from $dotfiles_actual_dir..."
     pushd "$dotfiles_actual_dir" > /dev/null
-    local stow_packages=("zsh" "tmux") # Add nvim, git (.gitconfig) etc.
+    local stow_packages=("zsh" "tmux", "bash") # Add nvim, git (.gitconfig) etc.
     info "Attempting to stow: ${stow_packages[*]}"
     for pkg in "${stow_packages[@]}"; do
         if [[ -d "$pkg" ]]; then
