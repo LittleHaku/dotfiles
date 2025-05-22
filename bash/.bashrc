@@ -180,3 +180,6 @@ fi
 if ! command -v lsd &> /dev/null && [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 fi
+
+# Allow mouse scroll in less (batcat)
+export LESS='-R --mouse'

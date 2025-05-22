@@ -393,6 +393,9 @@ alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
 alias ls='lsd --group-dirs=first'
 
+# Allow mouse scroll in less (batcat)
+export LESS='-R --mouse'
+
 # fzf (dont apt install, use git)
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
