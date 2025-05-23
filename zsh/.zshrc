@@ -124,7 +124,7 @@ alias ls='lsd --group-dirs=first'
 
 # tmux
 
-alias ta='tmux attach -t'              			# Attach new tmux session to already running named session
+alias ta='tmux attach'              			# Attach new tmux session to already running named session
 alias tad='tmux attach -d -t'          			# Detach named tmux session
 alias tkss='tmux kill-session -t'      			# Terminate named running tmux session
 alias tksv='tmux kill-server'          			# Terminate all running tmux sessions
