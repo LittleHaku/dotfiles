@@ -137,7 +137,7 @@ alias ts='tmux new-session -s'         			# Create a new named tmux session
 export LESS='-R --mouse'
 
 # Removed explicit source ~/.fzf.zsh as fzf-tab usually handles this.
-
+source ~/.fzf.zsh
 
 # End startup time measurement - UNCOMMENT FOR USE, COMMENT OUT FOR NORMAL OPERATION
 # if [[ "$PROFILE_STARTUP" == true ]]; then
