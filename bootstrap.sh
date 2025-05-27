@@ -537,6 +537,31 @@ install_lsd() {
     fi
 }
 
+install_vscode() {
+    if is_wsl; then
+        warn "Skipping VS Code installation in WSL environment."
+        return
+    fi
+    if check_command code; then
+        info "VS Code already installed."
+        return
+    fi
+
+    msg "Installing Visual Studio Code…"
+    # Import Microsoft GPG key
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+      | gpg --dearmor > microsoft.gpg
+    sudo install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft.gpg
+    rm microsoft.gpg
+    # Add VS Code repo
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft.gpg] \
+      https://packages.microsoft.com/repos/code stable main" \
+      | sudo tee /etc/apt/sources.list.d/vscode.list >/dev/null
+    sudo apt update
+    sudo apt install -y code
+    info "Visual Studio Code installed."
+}
+
 stow_dotfiles() {
     local dotfiles_dir="$1"
     if ! check_command stow; then
@@ -662,6 +687,7 @@ main() {
         "bat:Install bat (better cat)?"
         "lsd:Install lsd (better ls)?"
         "tpm:Install TPM (Tmux Plugin Manager)?"
+        "vscode:Install VS Code?"
     )
 
     for tool_info in "${tools[@]}"; do
