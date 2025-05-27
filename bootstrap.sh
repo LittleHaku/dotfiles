@@ -649,6 +649,48 @@ install_torbrowser() {
     info "Tor Browser Launcher installed."
 }
 
+install_notion() {
+    if is_wsl; then
+        warn "Skipping Notion in WSL."
+        return
+    fi
+    msg "Installing Notion..."
+    if check_command snap; then
+        sudo snap install notion-snap
+        info "Notion installed via snap."
+    else
+        warn "snap not available; trying AppImage approach..."
+        local notion_dir="$HOME/.local/share/applications"
+        mkdir -p "$notion_dir"
+
+        # Download Notion AppImage (unofficial but commonly used)
+        local notion_url="https://github.com/notion-enhancer/notion-repackaged/releases/latest/download/Notion-linux.AppImage"
+        local notion_path="$HOME/.local/bin/notion"
+
+        mkdir -p "$HOME/.local/bin"
+        if wget -O "$notion_path" "$notion_url" && chmod +x "$notion_path"; then
+            info "Notion AppImage downloaded to $notion_path"
+        else
+            warn "Failed to download Notion AppImage. You may need to install it manually."
+        fi
+    fi
+}
+
+install_todoist() {
+    if is_wsl; then
+        warn "Skipping Todoist in WSL."
+        return
+    fi
+    msg "Installing Todoist..."
+    if check_command snap; then
+        sudo snap install todoist
+        info "Todoist installed via snap."
+    else
+        warn "snap not available; Todoist installation skipped."
+        warn "You can install Todoist manually from https://todoist.com/downloads"
+    fi
+}
+
 stow_dotfiles() {
     local dotfiles_dir="$1"
     if ! check_command stow; then
@@ -798,6 +840,8 @@ main() {
             "steam:Install Steam?"
             "vlc:Install VLC?"
             "torbrowser:Install Tor Browser?"
+            "notion:Install Notion?"
+            "todoist:Install Todoist?"
         )
     fi
 
