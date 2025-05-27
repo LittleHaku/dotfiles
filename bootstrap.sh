@@ -551,39 +551,23 @@ stow_dotfiles() {
     msg "Stowing dotfiles from $dotfiles_dir..."
     pushd "$dotfiles_dir" > /dev/null
 
-    # List all available packages
+    # collect all sub-dirs
     local all_packages=()
     for dir in */; do
-        if [[ -d "$dir" ]]; then
-            all_packages+=("${dir%/}")
-        fi
+        all_packages+=("${dir%/}")
     done
 
-    if [[ ${#all_packages[@]} -eq 0 ]]; then
-        warn "No stow packages found in $dotfiles_dir"
-        popd > /dev/null
-        return 1
-    fi
+    # Windows-only packages to drop
+    local windows_packages=(ahk komorebi whkd)
 
-    # Filter out Windows-specific packages on Linux (but allow them in WSL)
+    # build list excluding windows ones
     local available_packages=()
-    local windows_packages=("ahk" "komorebi" "whkd")
-
     for pkg in "${all_packages[@]}"; do
-        local is_windows_pkg=false
-        for win_pkg in "${windows_packages[@]}"; do
-            if [[ "$pkg" == "$win_pkg" ]]; then
-                is_windows_pkg=true
-                break
-            fi
-        done
-
-        # Only skip Windows packages if we're on pure Linux (not WSL)
-        if [[ "$is_windows_pkg" == true ]] && ! is_wsl; then
-            info "Skipping Windows-specific package: $pkg (not in WSL)"
-        else
-            available_packages+=("$pkg")
+        if [[ " ${windows_packages[*]} " == *" $pkg "* ]]; then
+            info "Skipping Windows-specific package: $pkg"
+            continue
         fi
+        available_packages+=("$pkg")
     done
 
     if [[ ${#available_packages[@]} -eq 0 ]]; then
@@ -594,28 +578,13 @@ stow_dotfiles() {
 
     info "Available packages for this environment: ${available_packages[*]}"
 
-    # Ask for each package individually, but completely skip Windows packages on Linux
+    # prompt only on the remaining packages
     for pkg in "${available_packages[@]}"; do
-        local is_windows_pkg=false
-        for win_pkg in "${windows_packages[@]}"; do
-            if [[ "$pkg" == "$win_pkg" ]]; then
-                is_windows_pkg=true
-                break
-            fi
-        done
-
-        # Completely skip Windows-specific packages on Linux (non-WSL)
-        if [[ "$is_windows_pkg" == true ]] && ! is_wsl; then
-            continue  # Skip asking entirely
-        fi
-
         if ask_yes_no "Stow $pkg?"; then
             info "Stowing $pkg..."
-            if stow --restow --target="$HOME" "$pkg"; then
-                info "$pkg stowed successfully."
-            else
-                warn "Failed to stow $pkg."
-            fi
+            stow --restow --target="$HOME" "$pkg" \
+              && info "$pkg stowed successfully." \
+              || warn "Failed to stow $pkg."
         else
             info "Skipping $pkg."
         fi
