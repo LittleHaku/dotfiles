@@ -13,6 +13,7 @@ FZF_INSTALL_DIR="${HOME}/.fzf"
 SSH_KEY_PATH_ED25519="${HOME}/.ssh/id_ed25519"
 SSH_KEY_PATH_RSA="${HOME}/.ssh/id_rsa" # Check for RSA as a fallback
 NON_INTERACTIVE=false
+FORCE_WSL=false  # Add this flag
 DOTFILES_SSH_URL="" # To be filled by prompt or --dotfiles-ssh-url arg
 
 # --- Helper Functions ---
@@ -43,7 +44,7 @@ ask_yes_no() {
 
 # Check if running in WSL
 is_wsl() {
-    [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null
+    [[ "$FORCE_WSL" == "true" ]] || [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null
 }
 
 # --- Setup Functions ---
@@ -65,6 +66,17 @@ setup_ssh_key_configuration() {
     # Check if we're in WSL
     if is_wsl; then
         info "WSL environment detected."
+
+        # If --wsl flag was used, try Windows SSH keys first
+        if [[ "$FORCE_WSL" == "true" ]]; then
+            info "WSL mode: Attempting to use Windows SSH keys..."
+            if setup_wsl_ssh_symlinks; then
+                return 0
+            else
+                warn "Could not find Windows SSH keys. Falling back to other options."
+            fi
+        fi
+
         echo "SSH Key options for WSL:"
         echo "1. Use existing SSH keys from Windows host"
         echo "2. Generate new SSH keys in WSL"
@@ -170,6 +182,11 @@ setup_wsl_ssh_symlinks() {
     done
 
     if [[ "$found_windows_ssh" = false ]]; then
+        if [[ "$FORCE_WSL" == "true" ]]; then
+            warn "Could not find Windows SSH keys in expected locations."
+            return 1  # Return failure for auto-mode
+        fi
+
         warn "Could not find Windows SSH keys in expected locations."
         echo "Please manually specify the Windows SSH directory path:"
         read -r -p "Windows SSH directory (e.g., /mnt/c/Users/YourName/.ssh): " custom_windows_ssh
@@ -700,6 +717,7 @@ main() {
             --dotfiles-dir) DOTFILES_DIR="$2"; shift 2 ;;
             --dotfiles-ssh-url) DOTFILES_SSH_URL="$2"; shift 2 ;;
             --yes | -y | --non-interactive) NON_INTERACTIVE=true; shift ;;
+            --wsl) FORCE_WSL=true; shift ;;
             *) error "Unknown option: $1" ;;
         esac
     done
@@ -708,6 +726,9 @@ main() {
     info "Interactive mode: $([ "$NON_INTERACTIVE" = true ] && echo "NO" || echo "YES")"
     if is_wsl; then
         info "WSL environment detected"
+        if [[ "$FORCE_WSL" == "true" ]]; then
+            info "WSL mode enabled via --wsl flag"
+        fi
     fi
 
     # Step 1: Install initial dependencies
@@ -748,23 +769,37 @@ main() {
     # Step 7: Install optional tools
     msg "Optional Tools Installation"
 
-    # Fixed: Use correct function name and proper function call syntax
-    local tools=(
-        "neovim:Install Neovim?"
-        "fzf:Install fzf (fuzzy finder)?"
-        "pyenv:Install PyEnv?"
-        "uv:Install uv (Python package manager)?"
-        "bat:Install bat (better cat)?"
-        "lsd:Install lsd (better ls)?"
-        "tpm:Install TPM (Tmux Plugin Manager)?"
-        "vscode:Install VS Code?"
-        "docker:Install Docker?"
-        "spotify_adblock:Install Spotify (adblock)?"
-        "discord:Install Discord?"
-        "steam:Install Steam?"
-        "vlc:Install VLC?"
-        "torbrowser:Install Tor Browser?"
-    )
+    # WSL-optimized tool list
+    local tools=()
+    if is_wsl; then
+        tools=(
+            "neovim:Install Neovim?"
+            "fzf:Install fzf (fuzzy finder)?"
+            "pyenv:Install PyEnv?"
+            "uv:Install uv (Python package manager)?"
+            "bat:Install bat (better cat)?"
+            "lsd:Install lsd (better ls)?"
+            "tpm:Install TPM (Tmux Plugin Manager)?"
+        )
+        info "WSL detected: Skipping GUI applications (VS Code, Discord, Steam, VLC, Tor Browser, Docker, Spotify)"
+    else
+        tools=(
+            "neovim:Install Neovim?"
+            "fzf:Install fzf (fuzzy finder)?"
+            "pyenv:Install PyEnv?"
+            "uv:Install uv (Python package manager)?"
+            "bat:Install bat (better cat)?"
+            "lsd:Install lsd (better ls)?"
+            "tpm:Install TPM (Tmux Plugin Manager)?"
+            "vscode:Install VS Code?"
+            "docker:Install Docker?"
+            "spotify_adblock:Install Spotify (adblock)?"
+            "discord:Install Discord?"
+            "steam:Install Steam?"
+            "vlc:Install VLC?"
+            "torbrowser:Install Tor Browser?"
+        )
+    fi
 
     for tool_info in "${tools[@]}"; do
         IFS=':' read -r tool_name tool_question <<< "$tool_info"
