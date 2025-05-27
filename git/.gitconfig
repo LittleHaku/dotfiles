@@ -1,0 +1,27 @@
+[user]
+    name = LittleHaku
+    email = ivandelhorno@gmail.com
+
+[core]
+    editor = nvim
+    autocrlf = input
+    
+[init]
+    defaultBranch = main
+
+[pull]
+    rebase = false
+
+[push]
+    default = simple
+    autoSetupRemote = true
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    lg = log --oneline --graph --decorate --all
+    
+[color]
+    ui = auto
