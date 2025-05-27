@@ -10,6 +10,11 @@ source "${ZINIT_HOME}/zinit.zsh"
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 
+# Word navigation key bindings
+bindkey '^[[1;5C' forward-word      # Ctrl+Right
+bindkey '^[[1;5D' backward-word     # Ctrl+Left
+
+
 # History configurations
 HISTFILE=~/.zsh_history
 HISTSIZE=5000
