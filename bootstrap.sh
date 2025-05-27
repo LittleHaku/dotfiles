@@ -562,6 +562,76 @@ install_vscode() {
     info "Visual Studio Code installed."
 }
 
+# Add new installers
+install_docker() {
+    if is_wsl; then
+        warn "Skipping Docker in WSL; use Docker Desktop on Windows."
+        return
+    fi
+    msg "Installing Docker..."
+    sudo apt update
+    sudo apt install -y docker.io
+    sudo systemctl enable --now docker
+    sudo usermod -aG docker "$USER"
+    info "Docker installed. Log out and back in to use without sudo."
+}
+
+install_spotify_adblock() {
+    if is_wsl; then
+        warn "Skipping spotify-adblock in WSL."
+        return
+    fi
+    msg "Installing spotify-adblock..."
+    sudo rm -rf /opt/spotify-adblock
+    sudo git clone https://github.com/abba23/spotify-adblock.git /opt/spotify-adblock
+    sudo bash /opt/spotify-adblock/install.sh
+    info "spotify-adblock installed."
+}
+
+install_discord() {
+    if is_wsl; then
+        warn "Skipping Discord in WSL."
+        return
+    fi
+    msg "Installing Discord via snap..."
+    if check_command snap; then
+        sudo snap install discord
+        info "Discord installed."
+    else
+        warn "snap not available; Discord skipped."
+    fi
+}
+
+install_steam() {
+    if is_wsl; then
+        warn "Skipping Steam in WSL."
+        return
+    fi
+    msg "Installing Steam..."
+    sudo apt install -y steam
+    info "Steam installed."
+}
+
+install_vlc() {
+    if is_wsl; then
+        warn "Skipping VLC in WSL."
+        return
+    fi
+    msg "Installing VLC..."
+    sudo apt install -y vlc
+    info "VLC installed."
+}
+
+install_torbrowser() {
+    if is_wsl; then
+        warn "Skipping Tor Browser in WSL."
+        return
+    fi
+    msg "Installing Tor Browser Launcher..."
+    sudo apt install -y torbrowser-launcher
+    info "Tor Browser Launcher installed."
+}
+
 stow_dotfiles() {
     local dotfiles_dir="$1"
     if ! check_command stow; then
@@ -688,6 +758,12 @@ main() {
         "lsd:Install lsd (better ls)?"
         "tpm:Install TPM (Tmux Plugin Manager)?"
         "vscode:Install VS Code?"
+        "docker:Install Docker?"
+        "spotify_adblock:Install Spotify (adblock)?"
+        "discord:Install Discord?"
+        "steam:Install Steam?"
+        "vlc:Install VLC?"
+        "torbrowser:Install Tor Browser?"
     )
 
     for tool_info in "${tools[@]}"; do
