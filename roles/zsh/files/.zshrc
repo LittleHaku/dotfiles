@@ -141,8 +141,15 @@ alias ts='tmux new-session -s'         			# Create a new named tmux session
 # Allow mouse scroll in less (batcat)
 export LESS='-R --mouse'
 
-# Removed explicit source ~/.fzf.zsh as fzf-tab usually handles this.
-source ~/.fzf.zsh
+# fzf shell integration - setup key bindings and fuzzy completion
+if command -v fzf >/dev/null 2>&1; then
+  eval "$(fzf --zsh)"
+fi
+
+# Also source the fzf.zsh file if it exists (for additional configurations)
+if [[ -f ~/.fzf.zsh ]]; then
+  source ~/.fzf.zsh
+fi
 
 # End startup time measurement - UNCOMMENT FOR USE, COMMENT OUT FOR NORMAL OPERATION
 # if [[ "$PROFILE_STARTUP" == true ]]; then
