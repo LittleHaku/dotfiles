@@ -1,0 +1,6 @@
+---
+- name: "Install FZF"
+  ansible.builtin.shell: "{{ ansible_user_dir }}/.fzf/install --all --no-update-rc"
+  args:
+    creates: "{{ ansible_user_dir }}/.fzf/bin/fzf"
+  become: false

@@ -1,0 +1,6 @@
+---
+- name: "FZF | ARCH | Install fzf"
+  community.general.pacman:
+    name: fzf
+    state: latest
+  become: true

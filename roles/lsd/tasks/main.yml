@@ -1,0 +1,16 @@
+---
+- name: "{{ role_name | default('LSD') }} | Checking for Distribution Config: {{ ansible_distribution }}"
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/{{ ansible_distribution }}.yml"
+  register: distribution_config
+
+- name: "{{ role_name | default('LSD') }} | Run Tasks: {{ ansible_distribution }}"
+  ansible.builtin.include_tasks: "{{ ansible_distribution }}.yml"
+  when: distribution_config.stat.exists
+
+- name: "{{ role_name | default('LSD') }} | Fallback to generic package installation"
+  ansible.builtin.package:
+    name: lsd
+    state: present
+  become: true
+  when: not distribution_config.stat.exists

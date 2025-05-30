@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install bat (better cat) command-line tool
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: ArchLinux
+      versions:
+        - all
+  galaxy_tags:
+    - cli-tools
+    - terminal
+    - development
+    - utilities
+    - cat
+
+dependencies: []

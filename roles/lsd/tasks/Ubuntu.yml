@@ -1,0 +1,6 @@
+---
+- name: "LSD | UBUNTU | Install lsd"
+  ansible.builtin.package:
+    name: lsd
+    state: present
+  become: true

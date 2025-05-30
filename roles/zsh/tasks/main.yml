@@ -44,7 +44,19 @@
 
 - name: Display shell info
   ansible.builtin.debug:
-    msg: 
+    msg:
       - "Current shell: {{ current_shell.stdout }}"
       - "Zsh installation complete"
       - ".zshrc symlinked from {{ playbook_dir }}/roles/zsh/files/.zshrc"
+
+- name: Include lsd role
+  ansible.builtin.include_role:
+    name: lsd
+
+- name: Include bat role
+  ansible.builtin.include_role:
+    name: bat
+
+- name: Include fzf role
+  ansible.builtin.include_role:
+    name: fzf

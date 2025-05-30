@@ -1,0 +1,16 @@
+---
+- name: "BAT | UBUNTU | Get latest release URL"
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/sharkdp/bat/releases/latest"
+    return_content: yes
+  register: bat_latest_release
+
+- name: "BAT | UBUNTU | Set download URL for amd64"
+  ansible.builtin.set_fact:
+    bat_deb_url: "{{ bat_latest_release.json.assets | selectattr('name', 'match', '.*_amd64\\.deb$') | map(attribute='browser_download_url') | first }}"
+
+- name: "BAT | UBUNTU | Install latest .deb package"
+  ansible.builtin.apt:
+    deb: "{{ bat_deb_url }}"
+    state: present
+  become: true

@@ -1,0 +1,16 @@
+---
+- name: "{{ role_name | default('FZF') }} | Checking for Distribution Config: {{ ansible_distribution }}"
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/{{ ansible_distribution }}.yml"
+  register: distribution_config
+
+- name: "{{ role_name | default('FZF') }} | Run Tasks: {{ ansible_distribution }}"
+  ansible.builtin.include_tasks: "{{ ansible_distribution }}.yml"
+  when: distribution_config.stat.exists
+
+- name: "{{ role_name | default('FZF') }} | Fallback to generic package installation"
+  ansible.builtin.package:
+    name: fzf
+    state: present
+  become: true
+  when: not distribution_config.stat.exists

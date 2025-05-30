@@ -1,0 +1,6 @@
+---
+- name: "LSD | ARCH | Install lsd"
+  community.general.pacman:
+    name: lsd
+    state: latest
+  become: true

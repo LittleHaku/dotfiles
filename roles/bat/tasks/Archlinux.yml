@@ -1,0 +1,6 @@
+---
+- name: "BAT | ARCH | Install bat"
+  community.general.pacman:
+    name: bat
+    state: latest
+  become: true
