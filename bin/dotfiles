@@ -16,7 +16,7 @@ X_MARK="${RED}✗${NC}"
 ARROW="${BLUE}▶${NC}"
 
 # Variables
-DOTFILES_DIR="$HOME/.dotfiles"
+DOTFILES_DIR="$HOME/dotfiles"
 DOTFILES_REPO="https://github.com/LittleHaku/dotfiles.git"
 TASK=""
 
