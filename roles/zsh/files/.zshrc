@@ -100,7 +100,7 @@ alias vim='nvim'
 alias cvim='vim'
 
 #use bat instead of cat
-alias cat='batcat'
+alias cat='bat'
 alias catn='/bin/cat'
 alias catnl='bat --paging=never'
 
