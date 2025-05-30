@@ -87,8 +87,11 @@ zinit ice lucid wait'!' atload'eval "$(pyenv init - zsh)"'
 zinit snippet /dev/null # Dummy snippet for atload
 
 # Add UV (defer if not immediately needed) - already async
-zinit ice lucid wait'!' # Adjust wait time
-zinit snippet "$HOME/.local/bin/env"
+# Only source UV env if the file exists
+if [[ -f "$HOME/.local/bin/env" ]]; then
+    zinit ice lucid wait'!' # Adjust wait time
+    zinit snippet "$HOME/.local/bin/env"
+fi
 
 ##################
 # Custom Aliases #
