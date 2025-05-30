@@ -1,0 +1,50 @@
+---
+- name: Install zsh
+  ansible.builtin.package:
+    name: zsh
+    state: present
+  become: true
+
+- name: Check if zsh is the default shell
+  ansible.builtin.shell: echo $SHELL
+  register: current_shell
+  changed_when: false
+
+- name: Set zsh as default shell
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    shell: /usr/bin/zsh
+  become: true
+  when: current_shell.stdout != "/usr/bin/zsh"
+
+- name: Check if .zshrc exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+  register: zshrc_exists
+
+- name: Backup existing .zshrc if it exists and is not a symlink
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/.zshrc"
+    dest: "{{ ansible_env.HOME }}/.zshrc.backup"
+    remote_src: true
+  when: zshrc_exists.stat.exists and not zshrc_exists.stat.islnk
+  ignore_errors: true
+
+- name: Remove existing .zshrc if it exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    state: absent
+  when: zshrc_exists.stat.exists
+
+- name: Create symlink for .zshrc
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/roles/zsh/files/.zshrc"
+    dest: "{{ ansible_env.HOME }}/.zshrc"
+    state: link
+
+- name: Display shell info
+  ansible.builtin.debug:
+    msg: 
+      - "Current shell: {{ current_shell.stdout }}"
+      - "Zsh installation complete"
+      - ".zshrc symlinked from {{ playbook_dir }}/roles/zsh/files/.zshrc"

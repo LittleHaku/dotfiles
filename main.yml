@@ -7,9 +7,7 @@
   vars:
     # Default roles to run
     default_roles:
-      - system
-      - shell
-      - git
+      - zsh
 
   pre_tasks:
     - name: Detect WSL
@@ -61,5 +59,17 @@
     - name: Display roles that will be executed
       ansible.builtin.debug:
         msg: "Running roles: {{ run_roles }}"
+      tags:
+        - always
+
+    - name: Execute roles
+      ansible.builtin.include_role:
+        name: "{{ role_item }}"
+        apply:
+          tags:
+            - "{{ role_item }}"
+      loop: "{{ run_roles }}"
+      loop_control:
+        loop_var: role_item
       tags:
         - always
