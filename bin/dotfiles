@@ -412,6 +412,33 @@ function wait_for_github_setup {
     read -p "Press Enter when you've added the SSH key to GitHub..."
 }
 
+# Check if SSH is already set up and working
+function check_existing_ssh_setup {
+    # Check if SSH keys exist
+    local ssh_keys_exist=false
+    if [[ -f "$SSH_KEY_PATH" ]] || [[ -n "$(find ~/.ssh -name 'id_*' -not -name '*.pub' 2>/dev/null | head -1)" ]]; then
+        ssh_keys_exist=true
+    fi
+
+    # If WSL, also check for Windows SSH keys
+    if is_wsl && ! $ssh_keys_exist; then
+        if check_windows_ssh_keys >/dev/null 2>&1; then
+            ssh_keys_exist=true
+        fi
+    fi
+
+    if $ssh_keys_exist; then
+        # Try to test GitHub SSH connection silently
+        if ssh -T git@github.com -o StrictHostKeyChecking=no -o ConnectTimeout=10 2>&1 | grep -q "successfully authenticated"; then
+            return 0  # SSH is fully set up and working
+        else
+            return 1  # SSH keys exist but GitHub connection failed
+        fi
+    else
+        return 2  # No SSH keys found
+    fi
+}
+
 # Test SSH connection to GitHub
 function test_github_ssh {
     __task "Testing SSH connection to GitHub"
@@ -576,16 +603,43 @@ function main {
             ;;
     esac
 
-    # Ask user if they want to setup SSH
-    echo
-    read -p "Do you want to setup SSH keys for GitHub? (Y/n): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        setup_ssh
-        USE_SSH=true
-    else
-        USE_SSH=false
-    fi
+    # Check if SSH is already set up
+    __task "Checking existing SSH setup"
+    ssh_status=$(check_existing_ssh_setup; echo $?)
+
+    case $ssh_status in
+        0)
+            echo -e "${GREEN}SSH keys are already set up and working with GitHub!${NC}"
+            _task_done
+            USE_SSH=true
+            ;;
+        1)
+            echo -e "${YELLOW}SSH keys found but GitHub connection failed${NC}"
+            _task_done
+            echo
+            read -p "SSH keys exist but GitHub connection failed. Do you want to reconfigure SSH? (Y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                setup_ssh
+                USE_SSH=true
+            else
+                USE_SSH=false
+            fi
+            ;;
+        2)
+            echo -e "${YELLOW}No SSH keys found${NC}"
+            _task_done
+            echo
+            read -p "Do you want to setup SSH keys for GitHub? (Y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                setup_ssh
+                USE_SSH=true
+            else
+                USE_SSH=false
+            fi
+            ;;
+    esac
 
     # Clone or update dotfiles repository
     if [[ ! -d "$DOTFILES_DIR" ]]; then
