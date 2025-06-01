@@ -31,7 +31,7 @@
   args:
     creates: "{{ ansible_env.HOME }}/.local/bin/uv"
   when: uv_version_check.rc != 0
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: "UV | ARCH | Add uv to PATH in .bashrc if not present"
   ansible.builtin.lineinfile:
@@ -40,6 +40,14 @@
     create: yes
     state: present
   when: ansible_env.SHELL is defined and ansible_env.SHELL.endswith('bash')
+
+- name: "UV | ARCH | Add uv to PATH in .zshrc if not present"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+    state: present
+  when: ansible_env.SHELL is defined and ansible_env.SHELL.endswith('zsh')
 
 - name: "UV | ARCH | Verify uv installation"
   ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv --version"

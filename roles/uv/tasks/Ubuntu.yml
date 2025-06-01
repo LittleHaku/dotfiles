@@ -24,6 +24,14 @@
     state: present
   when: ansible_env.SHELL is defined and ansible_env.SHELL.endswith('bash')
 
+- name: "UV | UBUNTU | Add uv to PATH in .zshrc if not present"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+    state: present
+  when: ansible_env.SHELL is defined and ansible_env.SHELL.endswith('zsh')
+
 - name: "UV | UBUNTU | Verify uv installation"
   ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv --version"
   register: uv_final_version
