@@ -144,6 +144,15 @@ alias ts='tmux new-session -s'         			# Create a new named tmux session
 # Allow mouse scroll in less (batcat)
 export LESS='-R --mouse'
 
+###################
+# PATH Management #
+###################
+
+# Add dotfiles bin directory to PATH
+if [[ -d "$HOME/dotfiles/bin" ]]; then
+    export PATH="$HOME/dotfiles/bin:$PATH"
+fi
+
 # fzf shell integration - setup key bindings and fuzzy completion
 if command -v fzf >/dev/null 2>&1; then
   eval "$(fzf --zsh)"

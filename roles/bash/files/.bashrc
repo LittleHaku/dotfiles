@@ -166,6 +166,11 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     export PATH="$HOME/.local/bin:$PATH"
 fi
 
+# Add dotfiles bin directory to PATH
+if [[ -d "$HOME/dotfiles/bin" ]] && [[ ":$PATH:" != *":$HOME/dotfiles/bin:"* ]]; then
+    export PATH="$HOME/dotfiles/bin:$PATH"
+fi
+
 #------------------------------------------------------------------------------
 # Source .bash_aliases if it exists for further user customization
 #------------------------------------------------------------------------------
