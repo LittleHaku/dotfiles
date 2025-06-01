@@ -17,7 +17,9 @@ ARROW="${BLUE}▶${NC}"
 
 # Variables
 DOTFILES_DIR="$HOME/dotfiles"
-DOTFILES_REPO="https://github.com/LittleHaku/dotfiles.git"
+DOTFILES_REPO_HTTPS="https://github.com/LittleHaku/dotfiles.git"
+DOTFILES_REPO_SSH="git@github.com:LittleHaku/dotfiles.git"
+SSH_KEY_PATH="$HOME/.ssh/id_ed25519"
 TASK=""
 
 # Task management functions
@@ -47,6 +49,13 @@ function _cmd {
     fi
 }
 
+# Command execution with output
+function _cmd_with_output {
+    if ! eval "$1"; then
+        _task_error "Command failed: $1"
+    fi
+}
+
 # Detect OS
 function detect_os {
     if [[ -f /etc/os-release ]]; then
@@ -54,6 +63,15 @@ function detect_os {
         echo $ID
     else
         echo "unknown"
+    fi
+}
+
+# Check if running in WSL
+function is_wsl {
+    if [[ -n "${WSL_DISTRO_NAME}" ]] || [[ -n "${WSLENV}" ]] || [[ "$(uname -r)" == *microsoft* ]]; then
+        return 0
+    else
+        return 1
     fi
 }
 
@@ -79,6 +97,12 @@ function ubuntu_setup {
         __task "Installing Python3"
         _cmd "sudo apt-get install -y python3 python3-pip"
     fi
+
+    # Install clipboard utilities
+    if ! command -v xclip >/dev/null 2>&1 && ! command -v xsel >/dev/null 2>&1; then
+        __task "Installing clipboard utilities"
+        _cmd "sudo apt-get install -y xclip"
+    fi
 }
 
 # Arch/Endeavour setup
@@ -100,6 +124,155 @@ function arch_setup {
         __task "Installing Python"
         _cmd "sudo pacman -S --noconfirm python python-pip"
     fi
+
+    # Install clipboard utilities
+    if ! command -v xclip >/dev/null 2>&1 && ! command -v xsel >/dev/null 2>&1; then
+        __task "Installing clipboard utilities"
+        _cmd "sudo pacman -S --noconfirm xclip"
+    fi
+}
+
+# Generate SSH key
+function generate_ssh_key {
+    if [[ -f "$SSH_KEY_PATH" ]]; then
+        echo -e "${YELLOW}SSH key already exists at $SSH_KEY_PATH${NC}"
+        read -p "Do you want to use the existing key? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            read -p "Enter a new SSH key name (without path): " key_name
+            SSH_KEY_PATH="$HOME/.ssh/$key_name"
+        fi
+    fi
+
+    if [[ ! -f "$SSH_KEY_PATH" ]]; then
+        __task "Generating SSH key"
+        read -p "Enter your email for the SSH key: " email
+
+        # Create .ssh directory if it doesn't exist
+        mkdir -p "$HOME/.ssh"
+        chmod 700 "$HOME/.ssh"
+
+        # Generate SSH key
+        ssh-keygen -t ed25519 -C "$email" -f "$SSH_KEY_PATH" -N ""
+        chmod 600 "$SSH_KEY_PATH"
+        chmod 644 "${SSH_KEY_PATH}.pub"
+        _task_done
+    fi
+}
+
+# Copy SSH key to clipboard
+function copy_ssh_key_to_clipboard {
+    __task "Copying SSH public key to clipboard"
+
+    if is_wsl; then
+        # WSL - copy to Windows clipboard
+        if command -v clip.exe >/dev/null 2>&1; then
+            cat "${SSH_KEY_PATH}.pub" | clip.exe
+            echo -e "${GREEN}SSH key copied to Windows clipboard via clip.exe${NC}"
+        elif command -v powershell.exe >/dev/null 2>&1; then
+            cat "${SSH_KEY_PATH}.pub" | powershell.exe -Command "Set-Clipboard"
+            echo -e "${GREEN}SSH key copied to Windows clipboard via PowerShell${NC}"
+        else
+            echo -e "${YELLOW}Could not access Windows clipboard. Please copy manually:${NC}"
+            cat "${SSH_KEY_PATH}.pub"
+        fi
+    else
+        # Regular Linux
+        if command -v xclip >/dev/null 2>&1; then
+            cat "${SSH_KEY_PATH}.pub" | xclip -selection clipboard
+            echo -e "${GREEN}SSH key copied to clipboard via xclip${NC}"
+        elif command -v xsel >/dev/null 2>&1; then
+            cat "${SSH_KEY_PATH}.pub" | xsel --clipboard --input
+            echo -e "${GREEN}SSH key copied to clipboard via xsel${NC}"
+        else
+            echo -e "${YELLOW}No clipboard utility available. Please copy manually:${NC}"
+            cat "${SSH_KEY_PATH}.pub"
+        fi
+    fi
+    _task_done
+}
+
+# Setup SSH agent
+function setup_ssh_agent {
+    __task "Setting up SSH agent"
+
+    # Start ssh-agent if not running
+    if [[ -z "$SSH_AUTH_SOCK" ]]; then
+        eval "$(ssh-agent -s)" >/dev/null
+    fi
+
+    # Add key to ssh-agent
+    ssh-add "$SSH_KEY_PATH" >/dev/null 2>&1
+    _task_done
+}
+
+# Wait for user to add SSH key to GitHub
+function wait_for_github_setup {
+    echo -e "\n${ARROW} ${YELLOW}Please add your SSH key to GitHub:${NC}"
+    echo -e "${BLUE}1. Go to https://github.com/settings/keys${NC}"
+    echo -e "${BLUE}2. Click 'New SSH key'${NC}"
+    echo -e "${BLUE}3. Paste the key from your clipboard${NC}"
+    echo -e "${BLUE}4. Give it a meaningful title${NC}"
+    echo -e "${BLUE}5. Click 'Add SSH key'${NC}"
+
+    echo
+    read -p "Press Enter when you've added the SSH key to GitHub..."
+}
+
+# Test SSH connection to GitHub
+function test_github_ssh {
+    __task "Testing SSH connection to GitHub"
+
+    # Test SSH connection
+    if ssh -T git@github.com -o StrictHostKeyChecking=no 2>&1 | grep -q "successfully authenticated"; then
+        echo -e "${GREEN}SSH connection to GitHub successful!${NC}"
+        _task_done
+        return 0
+    else
+        echo -e "${RED}SSH connection to GitHub failed.${NC}"
+        echo -e "${YELLOW}Please check that you've added the SSH key to your GitHub account.${NC}"
+        return 1
+    fi
+}
+
+# Convert repository to SSH if it exists and is HTTPS
+function convert_repo_to_ssh {
+    if [[ -d "$DOTFILES_DIR" ]]; then
+        cd "$DOTFILES_DIR"
+        current_remote=$(git remote get-url origin 2>/dev/null || echo "")
+
+        if [[ "$current_remote" == "https://github.com/"* ]]; then
+            __task "Converting repository remote from HTTPS to SSH"
+            _cmd "git remote set-url origin $DOTFILES_REPO_SSH"
+            _task_done
+        fi
+    fi
+}
+
+# SSH setup workflow
+function setup_ssh {
+    echo -e "\n${ARROW} ${BLUE}Setting up SSH for GitHub...${NC}\n"
+
+    generate_ssh_key
+    setup_ssh_agent
+    copy_ssh_key_to_clipboard
+    wait_for_github_setup
+
+    # Test SSH connection with retries
+    local retries=3
+    while [[ $retries -gt 0 ]]; do
+        if test_github_ssh; then
+            break
+        else
+            retries=$((retries - 1))
+            if [[ $retries -gt 0 ]]; then
+                echo -e "${YELLOW}Retrying in 5 seconds... ($retries attempts left)${NC}"
+                sleep 5
+            else
+                _task_error "Could not establish SSH connection to GitHub after multiple attempts"
+            fi
+        fi
+    done
 }
 
 # Main execution
@@ -124,11 +297,31 @@ function main {
             ;;
     esac
 
+    # Ask user if they want to setup SSH
+    echo
+    read -p "Do you want to setup SSH keys for GitHub? (Y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        setup_ssh
+        USE_SSH=true
+    else
+        USE_SSH=false
+    fi
+
     # Clone or update dotfiles repository
     if [[ ! -d "$DOTFILES_DIR" ]]; then
         __task "Cloning dotfiles repository"
-        _cmd "git clone $DOTFILES_REPO $DOTFILES_DIR"
+        if [[ "$USE_SSH" == "true" ]]; then
+            _cmd "git clone $DOTFILES_REPO_SSH $DOTFILES_DIR"
+        else
+            _cmd "git clone $DOTFILES_REPO_HTTPS $DOTFILES_DIR"
+        fi
     else
+        # Convert to SSH if user set up SSH
+        if [[ "$USE_SSH" == "true" ]]; then
+            convert_repo_to_ssh
+        fi
+
         __task "Updating dotfiles repository"
         _cmd "git -C $DOTFILES_DIR pull"
     fi
@@ -160,6 +353,10 @@ function main {
     echo -e "\n${CHECK_MARK} ${GREEN}Dotfiles setup completed successfully!${NC}"
     echo -e "${ARROW} ${YELLOW}You may need to restart your shell or reboot to see all changes.${NC}"
     echo -e "${ARROW} ${BLUE}Tmux reminder: Start tmux and press Ctrl+s then I to install plugins${NC}"
+
+    if [[ "$USE_SSH" == "true" ]]; then
+        echo -e "${ARROW} ${GREEN}SSH is now configured for GitHub operations${NC}"
+    fi
 }
 
 # Check if running as root
