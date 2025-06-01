@@ -1,0 +1,30 @@
+---
+- name: "GIT | UBUNTU | Check if git is already installed"
+  ansible.builtin.command: git --version
+  register: git_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "GIT | UBUNTU | Update package cache"
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  when: git_version_check.rc != 0
+
+- name: "GIT | UBUNTU | Install git via apt"
+  ansible.builtin.package:
+    name: git
+    state: present
+  become: true
+  when: git_version_check.rc != 0
+
+- name: "GIT | UBUNTU | Update git if already installed"
+  ansible.builtin.package:
+    name: git
+    state: latest
+  become: true
+  when: git_version_check.rc == 0
+
+- name: "GIT | UBUNTU | Display git version"
+  ansible.builtin.debug:
+    msg: "Git version installed: {{ git_version_check.stdout if git_version_check.rc == 0 else 'Installing git...' }}"

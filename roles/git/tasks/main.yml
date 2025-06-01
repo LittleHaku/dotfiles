@@ -1,0 +1,54 @@
+---
+- name: "{{ role_name | default('GIT') }} | Checking for Distribution Config: {{ ansible_distribution }}"
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/{{ ansible_distribution }}.yml"
+  register: distribution_config
+
+- name: "{{ role_name | default('GIT') }} | Run Tasks: {{ ansible_distribution }}"
+  ansible.builtin.include_tasks: "{{ ansible_distribution }}.yml"
+  when: distribution_config.stat.exists
+
+- name: "{{ role_name | default('GIT') }} | Fallback to generic installation"
+  ansible.builtin.package:
+    name: git
+    state: present
+  become: true
+  when: not distribution_config.stat.exists
+
+- name: "{{ role_name | default('GIT') }} | Check if gitconfig already exists"
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.gitconfig"
+  register: gitconfig_exists
+
+- name: "{{ role_name | default('GIT') }} | Backup existing gitconfig"
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/.gitconfig"
+    dest: "{{ ansible_env.HOME }}/.gitconfig.backup.{{ ansible_date_time.epoch }}"
+    backup: yes
+  when: gitconfig_exists.stat.exists and not gitconfig_exists.stat.islnk
+
+- name: "{{ role_name | default('GIT') }} | Remove existing gitconfig if it's not a symlink"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.gitconfig"
+    state: absent
+  when: gitconfig_exists.stat.exists and not gitconfig_exists.stat.islnk
+
+- name: "{{ role_name | default('GIT') }} | Link gitconfig"
+  ansible.builtin.file:
+    src: "{{ role_path }}/files/gitconfig"
+    dest: "{{ ansible_env.HOME }}/.gitconfig"
+    state: link
+
+- name: "{{ role_name | default('GIT') }} | Display git setup info"
+  ansible.builtin.debug:
+    msg:
+      - "Git installed successfully"
+      - "Configuration symlinked from {{ role_path }}/files/gitconfig"
+      - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      - "🔧 Git aliases available:"
+      - "   git st  = git status"
+      - "   git co  = git checkout"
+      - "   git br  = git branch"
+      - "   git ci  = git commit"
+      - "   git lg  = git log --oneline --graph --decorate --all"
+      - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

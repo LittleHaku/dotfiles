@@ -1,0 +1,24 @@
+---
+- name: "GIT | ARCH | Check if git is already installed"
+  ansible.builtin.command: git --version
+  register: git_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "GIT | ARCH | Install git via pacman"
+  ansible.builtin.package:
+    name: git
+    state: present
+  become: true
+  when: git_version_check.rc != 0
+
+- name: "GIT | ARCH | Update git if already installed"
+  ansible.builtin.package:
+    name: git
+    state: latest
+  become: true
+  when: git_version_check.rc == 0
+
+- name: "GIT | ARCH | Display git version"
+  ansible.builtin.debug:
+    msg: "Git version installed: {{ git_version_check.stdout if git_version_check.rc == 0 else 'Installing git...' }}"
