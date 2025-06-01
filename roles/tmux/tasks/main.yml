@@ -42,7 +42,7 @@
 
 - name: "{{ role_name | default('TMUX') }} | Create symlink for tmux.conf"
   ansible.builtin.file:
-    src: "{{ playbook_dir }}/tmux/.config/tmux/tmux.conf"
+    src: "{{ role_path }}/files/tmux.conf"
     dest: "{{ ansible_env.HOME }}/.config/tmux/tmux.conf"
     state: link
 
@@ -73,7 +73,7 @@
   ansible.builtin.debug:
     msg:
       - "Tmux installed successfully"
-      - "Configuration symlinked from {{ playbook_dir }}/tmux/.config/tmux/tmux.conf"
+      - "Configuration symlinked from {{ role_path }}/files/tmux.conf"
       - "TPM (Tmux Plugin Manager) installed"
       - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       - "🚀 IMPORTANT: To install tmux plugins, run: tmux"
