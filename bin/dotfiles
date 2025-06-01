@@ -159,6 +159,7 @@ function main {
 
     echo -e "\n${CHECK_MARK} ${GREEN}Dotfiles setup completed successfully!${NC}"
     echo -e "${ARROW} ${YELLOW}You may need to restart your shell or reboot to see all changes.${NC}"
+    echo -e "${ARROW} ${BLUE}Tmux reminder: Start tmux and press Ctrl+s then I to install plugins${NC}"
 }
 
 # Check if running as root

@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install and configure tmux terminal multiplexer with TPM (tmux plugin manager)
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: ArchLinux
+      versions:
+        - all
+
+dependencies: []

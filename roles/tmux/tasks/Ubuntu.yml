@@ -1,0 +1,42 @@
+---
+- name: "TMUX | UBUNTU | Check if tmux is already installed"
+  ansible.builtin.command: tmux -V
+  register: tmux_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "TMUX | UBUNTU | Update package cache"
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: true
+  when: tmux_version_check.rc != 0
+
+- name: "TMUX | UBUNTU | Install tmux"
+  ansible.builtin.apt:
+    name: tmux
+    state: present
+  become: true
+  when: tmux_version_check.rc != 0
+
+- name: "TMUX | UBUNTU | Upgrade tmux if already installed"
+  ansible.builtin.apt:
+    name: tmux
+    state: latest
+  become: true
+  when: tmux_version_check.rc == 0
+
+- name: "TMUX | UBUNTU | Install git (required for TPM)"
+  ansible.builtin.apt:
+    name: git
+    state: present
+  become: true
+
+- name: "TMUX | UBUNTU | Verify tmux installation"
+  ansible.builtin.command: tmux -V
+  register: tmux_final_version
+  changed_when: false
+
+- name: "TMUX | UBUNTU | Display installed version"
+  ansible.builtin.debug:
+    msg: "Tmux installed successfully: {{ tmux_final_version.stdout }}"

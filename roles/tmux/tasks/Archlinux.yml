@@ -1,0 +1,41 @@
+---
+- name: "TMUX | ARCH | Check if tmux is already installed"
+  ansible.builtin.command: tmux -V
+  register: tmux_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "TMUX | ARCH | Update package cache"
+  ansible.builtin.pacman:
+    update_cache: yes
+  become: true
+  when: tmux_version_check.rc != 0
+
+- name: "TMUX | ARCH | Install tmux"
+  ansible.builtin.pacman:
+    name: tmux
+    state: present
+  become: true
+  when: tmux_version_check.rc != 0
+
+- name: "TMUX | ARCH | Upgrade tmux if already installed"
+  ansible.builtin.pacman:
+    name: tmux
+    state: latest
+  become: true
+  when: tmux_version_check.rc == 0
+
+- name: "TMUX | ARCH | Install git (required for TPM)"
+  ansible.builtin.pacman:
+    name: git
+    state: present
+  become: true
+
+- name: "TMUX | ARCH | Verify tmux installation"
+  ansible.builtin.command: tmux -V
+  register: tmux_final_version
+  changed_when: false
+
+- name: "TMUX | ARCH | Display installed version"
+  ansible.builtin.debug:
+    msg: "Tmux installed successfully: {{ tmux_final_version.stdout }}"
