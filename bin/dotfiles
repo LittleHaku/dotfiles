@@ -20,6 +20,7 @@ DOTFILES_DIR="$HOME/dotfiles"
 DOTFILES_REPO_HTTPS="https://github.com/LittleHaku/dotfiles.git"
 DOTFILES_REPO_SSH="git@github.com:LittleHaku/dotfiles.git"
 SSH_KEY_PATH="$HOME/.ssh/id_ed25519"
+WINDOWS_SSH_DIR=""
 TASK=""
 
 # Task management functions
@@ -73,6 +74,198 @@ function is_wsl {
     else
         return 1
     fi
+}
+
+# Get Windows username
+function get_windows_username {
+    if is_wsl; then
+        # Try multiple methods to get Windows username
+        local win_user=""
+
+        # Method 1: From WSL environment
+        if [[ -n "$WSLENV" ]]; then
+            win_user=$(powershell.exe -Command '$env:USERNAME' 2>/dev/null | tr -d '\r\n' || echo "")
+        fi
+
+        # Method 2: From Windows registry via cmd
+        if [[ -z "$win_user" ]]; then
+            win_user=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r\n' || echo "")
+        fi
+
+        # Method 3: Parse from current WSL path
+        if [[ -z "$win_user" ]] && [[ -d "/mnt/c/Users" ]]; then
+            local users_dir="/mnt/c/Users"
+            local possible_users=($(ls "$users_dir" 2>/dev/null | grep -v "Public\|Default\|All Users" || echo ""))
+            if [[ ${#possible_users[@]} -eq 1 ]]; then
+                win_user="${possible_users[0]}"
+            elif [[ ${#possible_users[@]} -gt 1 ]]; then
+                echo -e "${YELLOW}Multiple Windows users found. Please select:${NC}"
+                for i in "${!possible_users[@]}"; do
+                    echo "$((i+1)). ${possible_users[$i]}"
+                done
+                read -p "Enter choice (1-${#possible_users[@]}): " -n 1 -r
+                echo
+                if [[ $REPLY -ge 1 ]] && [[ $REPLY -le ${#possible_users[@]} ]]; then
+                    win_user="${possible_users[$((REPLY-1))]}"
+                fi
+            fi
+        fi
+
+        echo "$win_user"
+    fi
+}
+
+# Find Windows SSH directory
+function find_windows_ssh_dir {
+    if is_wsl; then
+        local win_user=$(get_windows_username)
+        if [[ -n "$win_user" ]]; then
+            local possible_paths=(
+                "/mnt/c/Users/$win_user/.ssh"
+                "/mnt/c/Users/$win_user/AppData/Roaming/openssh"
+                "/mnt/c/ProgramData/ssh"
+            )
+
+            for path in "${possible_paths[@]}"; do
+                if [[ -d "$path" ]]; then
+                    echo "$path"
+                    return 0
+                fi
+            done
+        fi
+    fi
+    return 1
+}
+
+# List Windows SSH keys
+function list_windows_ssh_keys {
+    local windows_ssh_dir="$1"
+    if [[ -d "$windows_ssh_dir" ]]; then
+        find "$windows_ssh_dir" -name "id_*" -not -name "*.pub" 2>/dev/null || echo ""
+    fi
+}
+
+# Check if Windows SSH keys exist
+function check_windows_ssh_keys {
+    if is_wsl; then
+        __task "Checking for existing Windows SSH keys"
+
+        WINDOWS_SSH_DIR=$(find_windows_ssh_dir)
+        if [[ -n "$WINDOWS_SSH_DIR" ]]; then
+            local ssh_keys=($(list_windows_ssh_keys "$WINDOWS_SSH_DIR"))
+            if [[ ${#ssh_keys[@]} -gt 0 ]]; then
+                echo -e "${GREEN}Found Windows SSH directory: $WINDOWS_SSH_DIR${NC}"
+                echo -e "${GREEN}Found SSH keys:${NC}"
+                for key in "${ssh_keys[@]}"; do
+                    echo -e "  ${BLUE}$(basename "$key")${NC}"
+                done
+                _task_done
+                return 0
+            fi
+        fi
+
+        echo -e "${YELLOW}No existing Windows SSH keys found${NC}"
+        _task_done
+        return 1
+    fi
+    return 1
+}
+
+# Link Windows SSH keys to WSL
+function link_windows_ssh_keys {
+    local windows_ssh_dir="$1"
+    local ssh_keys=($(list_windows_ssh_keys "$windows_ssh_dir"))
+
+    if [[ ${#ssh_keys[@]} -eq 0 ]]; then
+        return 1
+    fi
+
+    __task "Linking Windows SSH keys to WSL"
+
+    # Create WSL .ssh directory
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+
+    # If multiple keys, let user choose
+    local selected_key=""
+    if [[ ${#ssh_keys[@]} -eq 1 ]]; then
+        selected_key="${ssh_keys[0]}"
+    else
+        echo -e "${YELLOW}Multiple SSH keys found. Please select one:${NC}"
+        for i in "${!ssh_keys[@]}"; do
+            echo "$((i+1)). $(basename "${ssh_keys[$i]}")"
+        done
+        read -p "Enter choice (1-${#ssh_keys[@]}): " -n 1 -r
+        echo
+        if [[ $REPLY -ge 1 ]] && [[ $REPLY -le ${#ssh_keys[@]} ]]; then
+            selected_key="${ssh_keys[$((REPLY-1))]}"
+        else
+            _task_error "Invalid selection"
+        fi
+    fi
+
+    if [[ -n "$selected_key" ]]; then
+        local key_name=$(basename "$selected_key")
+        local pub_key="${selected_key}.pub"
+
+        # Copy private key
+        cp "$selected_key" "$HOME/.ssh/$key_name"
+        chmod 600 "$HOME/.ssh/$key_name"
+
+        # Copy public key if it exists
+        if [[ -f "$pub_key" ]]; then
+            cp "$pub_key" "$HOME/.ssh/${key_name}.pub"
+            chmod 644 "$HOME/.ssh/${key_name}.pub"
+        fi
+
+        # Update SSH_KEY_PATH to point to the linked key
+        SSH_KEY_PATH="$HOME/.ssh/$key_name"
+
+        echo -e "${GREEN}Successfully linked SSH key: $key_name${NC}"
+        _task_done
+        return 0
+    fi
+
+    return 1
+}
+
+# Setup SSH in Windows (guide user through it)
+function setup_windows_ssh_keys {
+    echo -e "\n${ARROW} ${BLUE}Setting up SSH keys in Windows...${NC}\n"
+
+    echo -e "${YELLOW}We'll help you set up SSH keys in Windows and then link them to WSL.${NC}"
+    echo -e "${BLUE}Please follow these steps in a Windows PowerShell or Command Prompt:${NC}\n"
+
+    local win_user=$(get_windows_username)
+    local suggested_email=""
+
+    echo -e "${BLUE}1. Open PowerShell as your regular user (not as administrator)${NC}"
+    echo -e "${BLUE}2. Run the following command to generate an SSH key:${NC}"
+
+    read -p "Enter your email for the SSH key: " suggested_email
+
+    echo -e "\n${GREEN}ssh-keygen -t ed25519 -C \"$suggested_email\"${NC}\n"
+
+    echo -e "${BLUE}3. When prompted for file location, press Enter to use default${NC}"
+    echo -e "${BLUE}4. When prompted for passphrase, you can press Enter for no passphrase${NC}"
+    echo -e "${BLUE}5. The key will be saved to: C:\\Users\\$win_user\\.ssh\\${NC}\n"
+
+    echo -e "${YELLOW}After generating the key in Windows:${NC}"
+    echo -e "${BLUE}6. Copy the PUBLIC key content with this command in PowerShell:${NC}"
+    echo -e "${GREEN}Get-Content ~\\.ssh\\id_ed25519.pub | Set-Clipboard${NC}\n"
+    echo -e "${BLUE}7. Add the key to GitHub at: https://github.com/settings/keys${NC}\n"
+
+    read -p "Press Enter when you've completed the SSH key setup in Windows..."
+
+    # Now try to find and link the keys
+    if check_windows_ssh_keys && [[ -n "$WINDOWS_SSH_DIR" ]]; then
+        if link_windows_ssh_keys "$WINDOWS_SSH_DIR"; then
+            return 0
+        fi
+    fi
+
+    echo -e "${RED}Could not find the Windows SSH keys. Please ensure they were created correctly.${NC}"
+    return 1
 }
 
 # Ubuntu setup
@@ -249,14 +442,97 @@ function convert_repo_to_ssh {
     fi
 }
 
+# WSL SSH setup workflow
+function setup_wsl_ssh {
+    echo -e "\n${ARROW} ${BLUE}WSL SSH Setup Options:${NC}\n"
+
+    local has_windows_keys=false
+    if check_windows_ssh_keys; then
+        has_windows_keys=true
+    fi
+
+    if [[ "$has_windows_keys" == "true" ]]; then
+        echo -e "${GREEN}Found existing Windows SSH keys!${NC}"
+        echo -e "${BLUE}1. Link existing Windows SSH keys to WSL${NC}"
+        echo -e "${BLUE}2. Create new SSH keys in Windows${NC}"
+        echo -e "${BLUE}3. Create new SSH keys directly in WSL${NC}"
+        echo
+        read -p "Choose an option (1-3): " -n 1 -r
+        echo
+
+        case $REPLY in
+            1)
+                if link_windows_ssh_keys "$WINDOWS_SSH_DIR"; then
+                    setup_ssh_agent
+                    copy_ssh_key_to_clipboard
+                    wait_for_github_setup
+                    return 0
+                else
+                    echo -e "${RED}Failed to link Windows SSH keys${NC}"
+                    return 1
+                fi
+                ;;
+            2)
+                setup_windows_ssh_keys
+                setup_ssh_agent
+                copy_ssh_key_to_clipboard
+                wait_for_github_setup
+                return 0
+                ;;
+            3)
+                generate_ssh_key
+                setup_ssh_agent
+                copy_ssh_key_to_clipboard
+                wait_for_github_setup
+                return 0
+                ;;
+            *)
+                echo -e "${RED}Invalid option${NC}"
+                return 1
+                ;;
+        esac
+    else
+        echo -e "${YELLOW}No existing Windows SSH keys found.${NC}"
+        echo -e "${BLUE}1. Create new SSH keys in Windows (recommended for WSL)${NC}"
+        echo -e "${BLUE}2. Create new SSH keys directly in WSL${NC}"
+        echo
+        read -p "Choose an option (1-2): " -n 1 -r
+        echo
+
+        case $REPLY in
+            1)
+                setup_windows_ssh_keys
+                setup_ssh_agent
+                copy_ssh_key_to_clipboard
+                wait_for_github_setup
+                return 0
+                ;;
+            2)
+                generate_ssh_key
+                setup_ssh_agent
+                copy_ssh_key_to_clipboard
+                wait_for_github_setup
+                return 0
+                ;;
+            *)
+                echo -e "${RED}Invalid option${NC}"
+                return 1
+                ;;
+        esac
+    fi
+}
+
 # SSH setup workflow
 function setup_ssh {
-    echo -e "\n${ARROW} ${BLUE}Setting up SSH for GitHub...${NC}\n"
-
-    generate_ssh_key
-    setup_ssh_agent
-    copy_ssh_key_to_clipboard
-    wait_for_github_setup
+    if is_wsl; then
+        setup_wsl_ssh
+    else
+        echo -e "\n${ARROW} ${BLUE}Setting up SSH for GitHub...${NC}\n"
+        generate_ssh_key
+        setup_ssh_agent
+        copy_ssh_key_to_clipboard
+        wait_for_github_setup
+    fi
 
     # Test SSH connection with retries
     local retries=3
@@ -282,6 +558,9 @@ function main {
     # Detect OS
     OS=$(detect_os)
     __task "Detected OS: $OS"
+    if is_wsl; then
+        echo -e "${BLUE}Running in WSL environment${NC}"
+    fi
     _task_done
 
     # Setup based on OS
