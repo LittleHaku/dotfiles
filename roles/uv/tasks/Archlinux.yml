@@ -1,0 +1,51 @@
+---
+- name: "UV | ARCH | Check if uv is already installed"
+  ansible.builtin.command: uv --version
+  register: uv_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "UV | ARCH | Install uv from AUR using yay (if available)"
+  ansible.builtin.shell: |
+    if command -v yay >/dev/null 2>&1; then
+      yay -S --noconfirm uv
+    else
+      curl -LsSf https://astral.sh/uv/install.sh | sh
+    fi
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/uv"
+  when: uv_version_check.rc != 0
+
+- name: "UV | ARCH | Update uv if already installed via AUR"
+  ansible.builtin.shell: |
+    if command -v yay >/dev/null 2>&1; then
+      yay -S --noconfirm uv
+    else
+      uv self update
+    fi
+  when: uv_version_check.rc == 0
+
+- name: "UV | ARCH | Fallback to official installer if AUR fails"
+  ansible.builtin.shell: |
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/uv"
+  when: uv_version_check.rc != 0
+  ignore_errors: yes
+
+- name: "UV | ARCH | Add uv to PATH in .bashrc if not present"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+    state: present
+  when: ansible_env.SHELL is defined and ansible_env.SHELL.endswith('bash')
+
+- name: "UV | ARCH | Verify uv installation"
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv --version"
+  register: uv_final_version
+  changed_when: false
+
+- name: "UV | ARCH | Display installed version"
+  ansible.builtin.debug:
+    msg: "UV installed successfully: {{ uv_final_version.stdout }}"

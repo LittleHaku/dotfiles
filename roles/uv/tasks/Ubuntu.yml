@@ -1,0 +1,34 @@
+---
+- name: "UV | UBUNTU | Check if uv is already installed"
+  ansible.builtin.command: uv --version
+  register: uv_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "UV | UBUNTU | Install/Update uv via official installer"
+  ansible.builtin.shell: |
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/uv"
+  when: uv_version_check.rc != 0
+
+- name: "UV | UBUNTU | Update uv if already installed"
+  ansible.builtin.command: uv self update
+  when: uv_version_check.rc == 0
+
+- name: "UV | UBUNTU | Add uv to PATH in .bashrc if not present"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+    state: present
+  when: ansible_env.SHELL is defined and ansible_env.SHELL.endswith('bash')
+
+- name: "UV | UBUNTU | Verify uv installation"
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv --version"
+  register: uv_final_version
+  changed_when: false
+
+- name: "UV | UBUNTU | Display installed version"
+  ansible.builtin.debug:
+    msg: "UV installed successfully: {{ uv_final_version.stdout }}"

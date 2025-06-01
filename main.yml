@@ -8,6 +8,7 @@
     # Default roles to run
     default_roles:
       - zsh
+      - uv
 
   pre_tasks:
     - name: Detect WSL

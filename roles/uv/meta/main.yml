@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install UV - An extremely fast Python package and project manager
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Archlinux
+      versions:
+        - all
+
+dependencies: []
