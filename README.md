@@ -8,28 +8,37 @@ This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, PyEnv, uv, N
 
 ## Installation
 
-### Linux: Bootstrap Script (Recommended)
+### One-Line Install (Recommended)
 
-This script automates the entire setup process.
+**Complete setup with single curl command:**
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/dotfiles)
+```
 
-**1. Run:**
-   ```bash
-   bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)
-   ```
-   *(Or with `curl`: `bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)`) *
+**Or with wget:**
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/dotfiles)
+```
 
-**2. Follow Prompts:**
-   Requires `sudo` privileges. It will guide you through SSH key setup for GitHub, cloning these dotfiles, and installing software.
+**For WSL environments:**
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/dotfiles) --wsl
+```
 
-**Non-Interactive Mode:**
-   ```bash
-   bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh) -- \
-     --non-interactive \
-     --git-email "your_github_email@example.com" \
-     --git-name "Your Git Name" \
-     --dotfiles-ssh-url "git@github.com:LittleHaku/dotfiles.git"
-   ```
-   **Arguments:** `--git-email`, `--git-name`, `--dotfiles-dir`, `--dotfiles-ssh-url`, `--yes` (or `-y`, `--non-interactive`).
+This single command will:
+1. ✅ Detect your OS (Ubuntu/Arch) and install required packages
+2. ✅ Generate SSH keys and guide you through GitHub setup
+3. ✅ Clone the dotfiles repository (HTTPS or SSH)
+4. ✅ Run the complete Ansible playbook to configure your environment
+5. ✅ Set up Zsh, Tmux, Git, and all development tools
+
+### Alternative: Bootstrap Script
+
+For environments that need additional setup or legacy systems:
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)
+```
 
 ---
 
