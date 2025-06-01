@@ -7,6 +7,7 @@
   vars:
     # Default roles to run
     default_roles:
+      - bash
       - zsh
       - uv
 

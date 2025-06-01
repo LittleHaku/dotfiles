@@ -1,0 +1,76 @@
+---
+- name: Install bash (usually pre-installed)
+  ansible.builtin.package:
+    name: bash
+    state: present
+  become: true
+
+- name: Check if bash is the default shell
+  ansible.builtin.shell: echo $SHELL
+  register: current_shell
+  changed_when: false
+
+- name: Set bash as default shell
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    shell: /bin/bash
+  become: true
+  when: current_shell.stdout != "/bin/bash"
+
+- name: Check if .bashrc exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+  register: bashrc_exists
+
+- name: Backup existing .bashrc if it exists and is not a symlink
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/.bashrc"
+    dest: "{{ ansible_env.HOME }}/.bashrc.backup"
+    remote_src: true
+  when: bashrc_exists.stat.exists and not bashrc_exists.stat.islnk
+  ignore_errors: true
+
+- name: Remove existing .bashrc if it exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    state: absent
+  when: bashrc_exists.stat.exists
+
+- name: Create symlink for .bashrc
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/roles/bash/files/.bashrc"
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    state: link
+
+- name: Check if .bash_profile exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.bash_profile"
+  register: bash_profile_exists
+
+- name: Backup existing .bash_profile if it exists and is not a symlink
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/.bash_profile"
+    dest: "{{ ansible_env.HOME }}/.bash_profile.backup"
+    remote_src: true
+  when: bash_profile_exists.stat.exists and not bash_profile_exists.stat.islnk
+  ignore_errors: true
+
+- name: Remove existing .bash_profile if it exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bash_profile"
+    state: absent
+  when: bash_profile_exists.stat.exists
+
+- name: Create symlink for .bash_profile
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/roles/bash/files/.bash_profile"
+    dest: "{{ ansible_env.HOME }}/.bash_profile"
+    state: link
+
+- name: Display shell info
+  ansible.builtin.debug:
+    msg:
+      - "Current shell: {{ current_shell.stdout }}"
+      - "Bash configuration complete"
+      - ".bashrc symlinked from {{ playbook_dir }}/roles/bash/files/.bashrc"
+      - ".bash_profile symlinked from {{ playbook_dir }}/roles/bash/files/.bash_profile"
