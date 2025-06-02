@@ -8,6 +8,7 @@
 - name: "GIT | UBUNTU | Update package cache"
   ansible.builtin.apt:
     update_cache: yes
+    cache_valid_time: 3600
   become: true
   when: git_version_check.rc != 0
 

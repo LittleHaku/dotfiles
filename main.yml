@@ -2,28 +2,30 @@
 - name: DotFiles Configuration
   hosts: localhost
   connection: local
-  gather_facts: yes
-
-  vars:
-    # Default roles to run
-    default_roles:
-      - bash
-      - zsh
-      - git
-      - uv
-      - tmux
-      - pdflatex
-      - fzf
-      - lsd
-      - bat
-      - cleanup
-
-    # Update control variables
-    auto_system_upgrade: true    # Set to false to skip system package upgrades
-    auto_zinit_update: true      # Set to false to skip Zinit and plugin updates
-    auto_tmux_update: true       # Set to false to skip Tmux and plugin updates
+  gather_facts: false    # Disable full fact gathering for speed
+  strategy: free         # Enable parallel task execution where possible
 
   pre_tasks:
+    - name: Gather minimal facts
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+      tags:
+        - always
+
+    - name: GLOBAL | Debian | Update apt cache once
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      become: true
+      when: ansible_os_family == 'Debian'
+
+    - name: GLOBAL | Arch | Update pacman database once
+      community.general.pacman:
+        update_cache: yes
+      become: true
+      when: ansible_os_family == 'Archlinux'
+
     - name: Detect WSL
       ansible.builtin.import_tasks: pre_tasks/detect_wsl.yml
       tags:
@@ -41,7 +43,7 @@
       tags:
         - always
 
-    - name: Detect Host User
+    - name: Detect Host User (WSL)
       ansible.builtin.import_tasks: pre_tasks/whoami_wsl.yml
       when: ansible_host_environment_is_wsl == "true"
       tags:
@@ -62,6 +64,25 @@
           - "WSL Host User: {{ wsl_host_user | default('not applicable') }}"
       tags:
         - always
+
+  vars:
+    # Default roles to run
+    default_roles:
+      - bash
+      - zsh
+      - git
+      - uv
+      - tmux
+      - pdflatex
+      - fzf
+      - lsd
+      - bat
+      - cleanup
+
+    # Update control variables
+    auto_system_upgrade: true    # Set to false to skip system package upgrades
+    auto_zinit_update: true      # Set to false to skip Zinit and plugin updates
+    auto_tmux_update: true       # Set to false to skip Tmux and plugin updates
 
   tasks:
     - name: Set roles to run
