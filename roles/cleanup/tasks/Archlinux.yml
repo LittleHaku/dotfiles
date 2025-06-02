@@ -1,26 +1,18 @@
 ---
-- name: "CLEANUP | ARCH | Remove orphaned packages"
-  community.general.pacman:
-    extra_args: --noconfirm
-    state: absent
-    name: "{{ ansible_facts.packages | dict2items | selectattr('key', 'match', '^.*$') | selectattr('value', 'length', 0) | map(attribute='key') | list }}"
+- name: "CLEANUP | ARCH | Check for orphaned packages"
+  ansible.builtin.shell: "pacman -Qtdq"
   become: true
-  register: orphan_removal
+  register: orphan_check
+  changed_when: false
   failed_when: false
 
-- name: "CLEANUP | ARCH | Remove orphaned packages with pacman -Rns"
-  ansible.builtin.shell: |
-    # Find orphaned packages
-    ORPHANS=$(pacman -Qdtq 2>/dev/null || true)
-    if [ -n "$ORPHANS" ]; then
-      pacman -Rns --noconfirm $ORPHANS
-      echo "Removed orphaned packages: $ORPHANS"
-    else
-      echo "No orphaned packages found"
-    fi
+- name: "CLEANUP | ARCH | Remove orphaned packages"
+  ansible.builtin.shell: "pacman -Rns --noconfirm {{ orphan_check.stdout_lines | join(' ') }}"
   become: true
+  when: orphan_check.stdout != ""
   register: arch_orphan_cleanup
-  changed_when: '"Removed orphaned packages:" in arch_orphan_cleanup.stdout'
+  changed_when: arch_orphan_cleanup.rc == 0
+  failed_when: false
 
 - name: "CLEANUP | ARCH | Clean package cache (keep 3 versions)"
   ansible.builtin.shell: |
@@ -73,7 +65,7 @@
   ansible.builtin.debug:
     msg:
       - "Arch Linux cleanup completed:"
-      - "- {{ 'Removed orphaned packages' if arch_orphan_cleanup.changed else 'No orphaned packages found' }}"
+      - "- {{ 'Removed orphaned packages' if (arch_orphan_cleanup is defined and arch_orphan_cleanup.changed) else 'No orphaned packages found' }}"
       - "- {{ 'Cleaned package cache' if cache_cleanup.changed else 'Package cache already clean' }}"
       - "- {{ 'Cleaned uninstalled package cache' if uninstalled_cache_cleanup.changed else 'Uninstalled cache already clean' }}"
       - "- {{ 'Cleaned system logs' if log_cleanup.changed else 'No old logs to clean' }}"
