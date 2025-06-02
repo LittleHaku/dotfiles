@@ -6,7 +6,7 @@
   become: true
 
 - name: Get zsh path
-  ansible.builtin.command: which zsh
+  ansible.builtin.shell: command -v zsh
   register: zsh_path
   changed_when: false
 
