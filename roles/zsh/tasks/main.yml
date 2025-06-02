@@ -5,17 +5,22 @@
     state: present
   become: true
 
-- name: Check if zsh is the default shell
-  ansible.builtin.shell: echo $SHELL
-  register: current_shell
+- name: Get zsh path
+  ansible.builtin.command: which zsh
+  register: zsh_path
+  changed_when: false
+
+- name: Check current default shell from passwd
+  ansible.builtin.shell: "getent passwd {{ ansible_user_id }} | cut -d: -f7"
+  register: current_shell_passwd
   changed_when: false
 
 - name: Set zsh as default shell
   ansible.builtin.user:
     name: "{{ ansible_user_id }}"
-    shell: /usr/bin/zsh
+    shell: "{{ zsh_path.stdout }}"
   become: true
-  when: current_shell.stdout != "/usr/bin/zsh"
+  when: current_shell_passwd.stdout != zsh_path.stdout
 
 - name: Check if .zshrc exists
   ansible.builtin.stat:
@@ -45,7 +50,8 @@
 - name: Display shell info
   ansible.builtin.debug:
     msg:
-      - "Current shell: {{ current_shell.stdout }}"
+      - "Current shell: {{ current_shell_passwd.stdout }}"
+      - "Zsh path: {{ zsh_path.stdout }}"
       - "Zsh installation complete"
       - ".zshrc symlinked from {{ playbook_dir }}/roles/zsh/files/.zshrc"
 
