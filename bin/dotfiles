@@ -1,119 +1,181 @@
 #!/bin/bash
-set -e # Exit immediately if a command exits with a non-zero status.
+# Force xtrace for extreme debugging from the very start, and exit on error
+set -e -x
+
+# VERY EARLY DEBUGGING - redirect to stderr to avoid issues with stdout capture
+echo "DEBUG: Script started. BASH_SOURCE[0]='${BASH_SOURCE[0]}', \$0='$0', PWD='$(pwd)'" >&2
 
 # --- Configuration ---
-# These are defaults. The cloned repo's script might have different values if you change them there.
 DOTFILES_DIR_DEFAULT="$HOME/dotfiles"
 DOTFILES_REPO_HTTPS_DEFAULT="https://github.com/LittleHaku/dotfiles.git"
-DOTFILES_REPO_SSH_DEFAULT="git@github.com:LittleHaku/dotfiles.git" # Ensure this matches your repo
+# DOTFILES_REPO_SSH_DEFAULT="git@github.com:LittleHaku/dotfiles.git" # Not needed for initial bootstrap
+
+echo "DEBUG: Configs set. DOTFILES_DIR_DEFAULT='${DOTFILES_DIR_DEFAULT}'" >&2
 
 # --- Bootstrap for curl | bash ---
-# This section ensures that if the script is run via curl, it first clones the full repo
-# and then re-executes itself from the cloned repo, so it can access library files.
+# This section determines if the script is running from a full checkout or via curl.
 
 # Try to determine the script's own directory to find lib files.
-# This is robust for local execution and when executed from a cloned repo.
 # For `curl | bash`, BASH_SOURCE[0] might be /dev/fd/63 or similar.
-CURRENT_SCRIPT_PATH="${BASH_SOURCE[0]}"
-# Resolve symlinks to get the true script path
-while [[ -L "$CURRENT_SCRIPT_PATH" ]]; do
-    CURRENT_SCRIPT_DIR="$(cd -P "$(dirname "$CURRENT_SCRIPT_PATH")" >/dev/null 2>&1 && pwd)"
-    CURRENT_SCRIPT_PATH="$(readlink "$CURRENT_SCRIPT_PATH")"
-    [[ "$CURRENT_SCRIPT_PATH" != /* ]] && CURRENT_SCRIPT_PATH="$CURRENT_SCRIPT_DIR/$CURRENT_SCRIPT_PATH"
-done
-SCRIPT_REAL_DIR="$(cd -P "$(dirname "$CURRENT_SCRIPT_PATH")" >/dev/null 2>&1 && pwd)"
-LIB_DIR_RELATIVE_PATH="../lib" # Relative path from bin/ to lib/
-PROBE_LIB_FILE="utils.sh"      # A file we expect to find in the lib directory
+CURRENT_SCRIPT_PATH_RAW="${BASH_SOURCE[0]}"
+echo "DEBUG: CURRENT_SCRIPT_PATH_RAW='${CURRENT_SCRIPT_PATH_RAW}'" >&2
 
-# Construct the absolute path to the library directory
-# This handles cases where SCRIPT_REAL_DIR might be like /usr/local/bin if symlinked
-# We assume the 'lib' directory is relative to the *source* location of the script,
-# typically within the dotfiles repository structure.
-# If this script (`bin/dotfiles`) is at `REPO_ROOT/bin/dotfiles`, then `lib` is at `REPO_ROOT/lib`.
-ABSOLUTE_LIB_DIR="$SCRIPT_REAL_DIR/$LIB_DIR_RELATIVE_PATH"
+# Attempt to get the directory of the script.
+# This can be tricky with `curl | bash`.
+SCRIPT_DIR_CANDIDATE=""
+if [[ -n "$CURRENT_SCRIPT_PATH_RAW" ]]; then
+    # `dirname` can be problematic if path is just "bash" (gives ".")
+    # or if path is weird from /dev/fd
+    DN_OUTPUT="$(dirname "$CURRENT_SCRIPT_PATH_RAW")"
+    echo "DEBUG: dirname output for CURRENT_SCRIPT_PATH_RAW ('$CURRENT_SCRIPT_PATH_RAW') is '$DN_OUTPUT'" >&2
+    if [[ -d "$DN_OUTPUT" ]]; then
+        # Try to cd to it and get absolute path
+        # Use a subshell to avoid changing current PWD of main script
+        SCRIPT_DIR_CANDIDATE=$(cd "$DN_OUTPUT" && pwd -P)
+        echo "DEBUG: SCRIPT_DIR_CANDIDATE after cd and pwd: '$SCRIPT_DIR_CANDIDATE'" >&2
+    else
+        echo "DEBUG: dirname output '$DN_OUTPUT' is not a directory. SCRIPT_DIR_CANDIDATE remains empty or previous." >&2
+    fi
+fi
 
-# Check if we are in a "bootstrapping" phase (lib dir not found relative to script's real location)
-# This indicates `curl | bash` or a broken installation.
-if [[ ! -f "$ABSOLUTE_LIB_DIR/$PROBE_LIB_FILE" ]]; then
-    echo -e "\033[1;33mBootstrapping: Library files not found at $ABSOLUTE_LIB_DIR.\033[0m"
-    echo -e "\033[1;33mAssuming curl | bash execution or incomplete setup.\033[0m"
-    echo -e "\033[0;34mAttempting to clone/update dotfiles repository to $DOTFILES_DIR_DEFAULT...\033[0m"
+# If SCRIPT_DIR_CANDIDATE is empty or ".", it means dirname didn't give a useful absolute path component.
+# This is common if BASH_SOURCE[0] was just "bash" or similar.
+# In such cases, we can't reliably find "../lib" relative to the script itself.
+if [[ -z "$SCRIPT_DIR_CANDIDATE" ]] || [[ "$SCRIPT_DIR_CANDIDATE" == "." ]] || [[ "$SCRIPT_DIR_CANDIDATE" == "$(pwd -P)" ]]; then
+    # If script dir is current dir, or couldn't be determined as distinct,
+    # then for curl|bash, we assume libs are not present relative to it.
+    # For local execution from repo root/bin, this might also be true,
+    # but the key is that ../lib won't be found relative to /dev/fd/XX
+    echo "DEBUG: SCRIPT_DIR_CANDIDATE ('$SCRIPT_DIR_CANDIDATE') suggests we can't reliably find ../lib relative to script. Assuming bootstrap needed for curl|bash." >&2
+    # Force bootstrap by ensuring probe path won't exist
+    ABSOLUTE_LIB_DIR_PROBE="/path/that/should/not/exist/unless/very/unlucky/lib"
+else
+    # SCRIPT_DIR_CANDIDATE seems to be a valid directory for the script
+    # e.g. /home/user/dotfiles/bin or /usr/local/bin if symlinked
+    LIB_DIR_RELATIVE_PATH="../lib"
+    ABSOLUTE_LIB_DIR_PROBE="$SCRIPT_DIR_CANDIDATE/$LIB_DIR_RELATIVE_PATH"
+    # Normalize the path (e.g., /foo/bar/../baz -> /foo/baz)
+    if command -v realpath &>/dev/null; then
+        ABSOLUTE_LIB_DIR_PROBE=$(realpath -m "$ABSOLUTE_LIB_DIR_PROBE" 2>/dev/null || echo "$ABSOLUTE_LIB_DIR_PROBE")
+    fi
+    echo "DEBUG: SCRIPT_DIR_CANDIDATE is '$SCRIPT_DIR_CANDIDATE'. ABSOLUTE_LIB_DIR_PROBE is '$ABSOLUTE_LIB_DIR_PROBE'" >&2
+fi
+
+PROBE_LIB_FILE="utils.sh"
+echo "DEBUG: Checking for probe file: '$ABSOLUTE_LIB_DIR_PROBE/$PROBE_LIB_FILE'" >&2
+
+# The core bootstrap condition: if the lib/utils.sh is NOT found where expected.
+if [[ ! -f "$ABSOLUTE_LIB_DIR_PROBE/$PROBE_LIB_FILE" ]]; then
+    echo -e "\033[1;33mDEBUG: Bootstrap condition MET. Probe file NOT found.\033[0m" >&2
+    echo -e "\033[1;33mBootstrapping: Library files not found (expected near '$ABSOLUTE_LIB_DIR_PROBE').\033[0m" >&2
+    echo -e "\033[1;33mAssuming curl | bash execution or incomplete setup.\033[0m" >&2
+    echo -e "\033[0;34mAttempting to clone/update dotfiles repository to '$DOTFILES_DIR_DEFAULT'...\033[0m" >&2
 
     # Minimal dependencies for cloning: Git
     if ! command -v git &>/dev/null; then
-        echo "Git not found. Attempting to install..."
+        echo "DEBUG: Git not found. Attempting to install..." >&2
         if command -v apt-get &>/dev/null; then
             sudo apt-get update && sudo apt-get install -y git
         elif command -v pacman &>/dev/null; then
             sudo pacman -Sy --noconfirm git
-        elif command -v dnf &>/dev/null; then # Fedora
-            sudo dnf install -y git
-        elif command -v yum &>/dev/null; then # CentOS/RHEL older
-            sudo yum install -y git
-        elif command -v zypper &>/dev/null; then # OpenSUSE
-            sudo zypper install -y git
+        elif command -v dnf &>/dev/null; then sudo dnf install -y git
+        elif command -v yum &>/dev/null; then sudo yum install -y git
+        elif command -v zypper &>/dev/null; then sudo zypper install -y git
         else
-            echo -e "\033[0;31mError: Could not install Git. Please install Git manually and re-run.\033[0m" >&2
+            echo -e "\033[0;31mError: Could not determine package manager to install Git. Please install Git manually and re-run.\033[0m" >&2
             exit 1
         fi
-        if ! command -v git &>/dev/null; then # Check again
-            echo -e "\033[0;31mError: Git installation failed. Please install Git manually and re-run.\033[0m" >&2
+        if ! command -v git &>/dev/null; then
+            echo -e "\033[0;31mError: Git installation failed or not found after attempt. Please install Git manually.\033[0m" >&2
             exit 1
         fi
     fi
+    echo "DEBUG: Git check complete." >&2
 
     if [[ -d "$DOTFILES_DIR_DEFAULT/.git" ]]; then
-        echo "Dotfiles directory $DOTFILES_DIR_DEFAULT already exists and is a Git repository. Pulling latest changes..."
+        echo "DEBUG: Dotfiles directory '$DOTFILES_DIR_DEFAULT' already exists and is a Git repository. Pulling latest changes..." >&2
         current_pwd_bootstrap=$(pwd)
-        cd "$DOTFILES_DIR_DEFAULT" || (echo "Failed to cd to $DOTFILES_DIR_DEFAULT" && exit 1)
-        git pull || (echo "Git pull failed in $DOTFILES_DIR_DEFAULT" && exit 1)
-        cd "$current_pwd_bootstrap" || (echo "Failed to cd back to $current_pwd_bootstrap" && exit 1)
+        cd "$DOTFILES_DIR_DEFAULT" || (echo "DEBUG: Failed to cd to '$DOTFILES_DIR_DEFAULT'" >&2 && exit 1)
+        git pull || (echo "DEBUG: Git pull failed in '$DOTFILES_DIR_DEFAULT'" >&2 && exit 1)
+        cd "$current_pwd_bootstrap" || (echo "DEBUG: Failed to cd back to '$current_pwd_bootstrap'" >&2 && exit 1)
     else
-        echo "Cloning $DOTFILES_REPO_HTTPS_DEFAULT into $DOTFILES_DIR_DEFAULT..."
-        # Remove if it exists but is not a git repo, or is an empty dir
-        if [[ -e "$DOTFILES_DIR_DEFAULT" ]]; then
+        echo "DEBUG: Cloning '$DOTFILES_REPO_HTTPS_DEFAULT' into '$DOTFILES_DIR_DEFAULT'..." >&2
+        if [[ -e "$DOTFILES_DIR_DEFAULT" ]] && [[ ! -d "$DOTFILES_DIR_DEFAULT/.git" ]]; then
+            echo "DEBUG: Removing existing non-git directory '$DOTFILES_DIR_DEFAULT' before clone." >&2
             rm -rf "$DOTFILES_DIR_DEFAULT"
         fi
-        git clone "$DOTFILES_REPO_HTTPS_DEFAULT" "$DOTFILES_DIR_DEFAULT" || (echo "Git clone failed" && exit 1)
+        mkdir -p "$DOTFILES_DIR_DEFAULT" # Ensure parent exists if $HOME/dotfiles needs $HOME to be there
+        git clone "$DOTFILES_REPO_HTTPS_DEFAULT" "$DOTFILES_DIR_DEFAULT" || (echo "DEBUG: Git clone failed" >&2 && exit 1)
     fi
+    echo "DEBUG: Clone/pull complete." >&2
 
-    # Re-execute the script from the cloned repository's bin directory
     CLONED_SCRIPT_PATH="$DOTFILES_DIR_DEFAULT/bin/dotfiles"
+    echo "DEBUG: CLONED_SCRIPT_PATH='${CLONED_SCRIPT_PATH}'" >&2
     if [[ -f "$CLONED_SCRIPT_PATH" ]]; then
-        echo -e "\033[0;32mBootstrap complete. Re-executing script from $CLONED_SCRIPT_PATH...\033[0m"
-        # Pass along any original arguments
+        echo -e "\033[0;32mDEBUG: Bootstrap complete. Re-executing script from '$CLONED_SCRIPT_PATH'...\033[0m" >&2
+        # Unset xtrace for the exec'd script, it will set its own if needed
+        set +x
         exec bash "$CLONED_SCRIPT_PATH" "$@"
-        # exec replaces the current shell, so script doesn't continue here if successful
-        echo -e "\033[0;31mError: exec failed for $CLONED_SCRIPT_PATH\033[0m" >&2
-        exit 1 # Should not be reached if exec succeeds
+        # This part should not be reached if exec is successful
+        echo -e "\033[0;31mDEBUG: Error: exec failed for '$CLONED_SCRIPT_PATH'\033[0m" >&2
+        exit 1
     else
-        echo -e "\033[0;31mError: Cloned script not found at $CLONED_SCRIPT_PATH.\033[0m" >&2
+        echo -e "\033[0;31mDEBUG: Error: Cloned script not found at '$CLONED_SCRIPT_PATH'.\033[0m" >&2
         echo -e "\033[0;31mPlease check the repository structure and clone manually if needed.\033[0m" >&2
         exit 1
     fi
+else
+    echo -e "\033[1;32mDEBUG: Bootstrap condition NOT MET. Probe file FOUND: '$ABSOLUTE_LIB_DIR_PROBE/$PROBE_LIB_FILE'. Proceeding with local execution.\033[0m" >&2
+    # Set ABSOLUTE_LIB_DIR for sourcing, now that we know it's valid
+    ABSOLUTE_LIB_DIR="$ABSOLUTE_LIB_DIR_PROBE"
 fi
 # --- End of Bootstrap section ---
 
-# --- Regular script execution starts here ---
-# If we reached here, lib files are accessible. SCRIPT_REAL_DIR and ABSOLUTE_LIB_DIR are set.
+# If we are here, it means we are NOT in the bootstrap re-execution phase,
+# OR bootstrap was skipped because libs were found.
+# We need ABSOLUTE_LIB_DIR to be correctly set.
+# If bootstrap was skipped, ABSOLUTE_LIB_DIR was set to ABSOLUTE_LIB_DIR_PROBE.
+# If bootstrap happened, this part of the script is from the *cloned* repo,
+# and it will re-evaluate ABSOLUTE_LIB_DIR_PROBE correctly.
 
-# Global variables (can be overridden by sourced files if they also declare them, so be mindful)
-# These will now use the values from the (potentially cloned) repository context.
-DOTFILES_DIR="$HOME/dotfiles" # Standard location
-DOTFILES_REPO_HTTPS="https://github.com/LittleHaku/dotfiles.git" # Standard HTTPS remote
-DOTFILES_REPO_SSH="git@github.com:LittleHaku/dotfiles.git"     # Standard SSH remote
-SSH_KEY_PATH="$HOME/.ssh/id_ed25519" # Default SSH key path, can be changed by SSH setup functions
-WINDOWS_SSH_DIR=""                   # Populated by WSL functions if applicable
-TASK=""                              # For task management UI
-USE_SSH=false                        # Flag to indicate if SSH should be used for Git operations
+echo "DEBUG: Past bootstrap section. SCRIPT_REAL_DIR is now based on this script's actual location." >&2
+# Re-calculate SCRIPT_REAL_DIR and ABSOLUTE_LIB_DIR for the current execution context
+# This is important because after bootstrap, we are running the *cloned* script.
+CURRENT_SCRIPT_PATH_FINAL="${BASH_SOURCE[0]}"
+while [[ -L "$CURRENT_SCRIPT_PATH_FINAL" ]]; do
+    CURRENT_SCRIPT_DIR_FINAL="$(cd -P "$(dirname "$CURRENT_SCRIPT_PATH_FINAL")" >/dev/null 2>&1 && pwd)"
+    CURRENT_SCRIPT_PATH_FINAL="$(readlink "$CURRENT_SCRIPT_PATH_FINAL")"
+    [[ "$CURRENT_SCRIPT_PATH_FINAL" != /* ]] && CURRENT_SCRIPT_PATH_FINAL="$CURRENT_SCRIPT_DIR_FINAL/$CURRENT_SCRIPT_PATH_FINAL"
+done
+SCRIPT_REAL_DIR_FINAL="$(cd -P "$(dirname "$CURRENT_SCRIPT_PATH_FINAL")" >/dev/null 2>&1 && pwd)"
+ABSOLUTE_LIB_DIR="$SCRIPT_REAL_DIR_FINAL/../lib" # Standard relative path
+if command -v realpath &>/dev/null; then # Normalize it
+    ABSOLUTE_LIB_DIR=$(realpath -m "$ABSOLUTE_LIB_DIR" 2>/dev/null || echo "$ABSOLUTE_LIB_DIR")
+fi
 
-# Source library files using the determined ABSOLUTE_LIB_DIR
-# Order matters if there are dependencies between them. utils.sh is usually first.
+echo "DEBUG: ABSOLUTE_LIB_DIR for sourcing: '$ABSOLUTE_LIB_DIR'" >&2
+
+# Global variables (can be overridden by sourced files if they also declare them)
+DOTFILES_DIR="$HOME/dotfiles"
+DOTFILES_REPO_HTTPS="https://github.com/LittleHaku/dotfiles.git"
+DOTFILES_REPO_SSH="git@github.com:LittleHaku/dotfiles.git"
+SSH_KEY_PATH="$HOME/.ssh/id_ed25519"
+WINDOWS_SSH_DIR=""
+TASK=""
+USE_SSH=false
+
+# Unset xtrace before sourcing library files, as they might have their own debugging
+set +x
+
+# Source library files
 source "$ABSOLUTE_LIB_DIR/utils.sh"
 source "$ABSOLUTE_LIB_DIR/os_detect.sh"
 source "$ABSOLUTE_LIB_DIR/ssh_setup.sh"
 source "$ABSOLUTE_LIB_DIR/package_manager.sh"
-source "$ABSOLUTE_LIB_DIR/main_logic.sh" # This contains the main_execution function
+source "$ABSOLUTE_LIB_DIR/main_logic.sh"
+
+# Re-enable xtrace if you want to debug the main_logic.sh execution
+# set -x
 
 # Check if running as root (after sourcing utils for X_MARK and RED)
 if [[ $EUID -eq 0 ]]; then
