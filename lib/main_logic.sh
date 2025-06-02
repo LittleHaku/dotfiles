@@ -102,7 +102,7 @@ function run_ansible_playbook {
         fi
     fi
 
-    _cmd_with_output "ansible-playbook $playbook_file ${ansible_args[*]}"
+    _cmd_with_output "ansible-playbook -i localhost, $playbook_file ${ansible_args[*]}"
     _task_done
 }
 

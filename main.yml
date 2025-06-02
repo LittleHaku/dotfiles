@@ -66,6 +66,9 @@
         - always
 
   vars:
+    # Explicitly set Python interpreter to avoid discovery warnings
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    
     # Default roles to run
     default_roles:
       - bash
