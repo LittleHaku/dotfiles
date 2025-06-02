@@ -1,0 +1,36 @@
+---
+- name: "PDFLATEX | ARCH | Install texlive-core (includes pdflatex)"
+  community.general.pacman:
+    name:
+      - texlive-core
+      - texlive-latexextra
+      - texlive-fontsextra
+      - texlive-bibtexextra
+      - biber
+    state: latest
+  become: true
+
+- name: "PDFLATEX | ARCH | Verify pdflatex installation"
+  ansible.builtin.command: which pdflatex
+  register: pdflatex_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | ARCH | Verify bibtex installation"
+  ansible.builtin.command: which bibtex
+  register: bibtex_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | ARCH | Verify biber installation"
+  ansible.builtin.command: which biber
+  register: biber_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | ARCH | Display installation status"
+  ansible.builtin.debug:
+    msg:
+      - "pdflatex: {{ 'installed at ' + pdflatex_check.stdout if pdflatex_check.rc == 0 else 'not found' }}"
+      - "bibtex: {{ 'installed at ' + bibtex_check.stdout if bibtex_check.rc == 0 else 'not found' }}"
+      - "biber: {{ 'installed at ' + biber_check.stdout if biber_check.rc == 0 else 'not found' }}"

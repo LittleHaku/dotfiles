@@ -12,6 +12,7 @@
       - git
       - uv
       - tmux
+      - pdflatex
       - cleanup
 
   pre_tasks:

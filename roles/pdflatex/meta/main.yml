@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install pdflatex (LaTeX PDF compiler)
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: ArchLinux
+      versions:
+        - all
+  galaxy_tags:
+    - latex
+    - pdf
+    - document-processing
+    - development
+    - texlive

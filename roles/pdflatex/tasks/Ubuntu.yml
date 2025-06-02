@@ -1,0 +1,46 @@
+---
+- name: "PDFLATEX | UBUNTU | Install texlive-latex-base (includes pdflatex)"
+  ansible.builtin.apt:
+    name:
+      - texlive-latex-base
+      - texlive-latex-recommended
+      - texlive-latex-extra
+      - texlive-fonts-recommended
+      - texlive-bibtex-extra
+      - biber
+      - latexmk
+    state: present
+    update_cache: true
+  become: true
+
+- name: "PDFLATEX | UBUNTU | Verify pdflatex installation"
+  ansible.builtin.command: which pdflatex
+  register: pdflatex_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | UBUNTU | Verify bibtex installation"
+  ansible.builtin.command: which bibtex
+  register: bibtex_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | UBUNTU | Verify biber installation"
+  ansible.builtin.command: which biber
+  register: biber_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | UBUNTU | Verify latexmk installation"
+  ansible.builtin.command: which latexmk
+  register: latexmk_check
+  changed_when: false
+  failed_when: false
+
+- name: "PDFLATEX | UBUNTU | Display installation status"
+  ansible.builtin.debug:
+    msg:
+      - "pdflatex: {{ 'installed at ' + pdflatex_check.stdout if pdflatex_check.rc == 0 else 'not found' }}"
+      - "bibtex: {{ 'installed at ' + bibtex_check.stdout if bibtex_check.rc == 0 else 'not found' }}"
+      - "biber: {{ 'installed at ' + biber_check.stdout if biber_check.rc == 0 else 'not found' }}"
+      - "latexmk: {{ 'installed at ' + latexmk_check.stdout if latexmk_check.rc == 0 else 'not found' }}"
