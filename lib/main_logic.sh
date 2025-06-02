@@ -65,13 +65,9 @@ function run_ansible_playbook {
         _task_done
     fi
 
-    # Determine playbook name
-    local playbook_file=""
-    if [[ -f "main.yml" ]]; then playbook_file="main.yml";
-    elif [[ -f "playbook.yml" ]]; then playbook_file="playbook.yml";
-    elif [[ -f "site.yml" ]]; then playbook_file="site.yml";
-    else
-        _task_error "No Ansible playbook found (expected main.yml, playbook.yml, or site.yml in $DOTFILES_DIR)"
+    local playbook_file="main.yml"
+    if [[ ! -f "$playbook_file" ]]; then
+        _task_error "Ansible playbook '$playbook_file' not found in $DOTFILES_DIR. This script is configured to only use '$playbook_file'."
     fi
 
     __task "Running Ansible playbook: $playbook_file ${ansible_args[*]}"
