@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: ivan
+  description: System cleanup role for removing orphaned packages and cleaning caches
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: ArchLinux
+      versions:
+        - all
+
+dependencies: []

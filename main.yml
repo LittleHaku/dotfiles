@@ -12,6 +12,7 @@
       - git
       - uv
       - tmux
+      - cleanup
 
   pre_tasks:
     - name: Detect WSL

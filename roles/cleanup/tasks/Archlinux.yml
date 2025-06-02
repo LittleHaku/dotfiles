@@ -1,0 +1,82 @@
+---
+- name: "CLEANUP | ARCH | Remove orphaned packages"
+  community.general.pacman:
+    extra_args: --noconfirm
+    state: absent
+    name: "{{ ansible_facts.packages | dict2items | selectattr('key', 'match', '^.*$') | selectattr('value', 'length', 0) | map(attribute='key') | list }}"
+  become: true
+  register: orphan_removal
+  failed_when: false
+
+- name: "CLEANUP | ARCH | Remove orphaned packages with pacman -Rns"
+  ansible.builtin.shell: |
+    # Find orphaned packages
+    ORPHANS=$(pacman -Qdtq 2>/dev/null || true)
+    if [ -n "$ORPHANS" ]; then
+      pacman -Rns --noconfirm $ORPHANS
+      echo "Removed orphaned packages: $ORPHANS"
+    else
+      echo "No orphaned packages found"
+    fi
+  become: true
+  register: arch_orphan_cleanup
+  changed_when: '"Removed orphaned packages:" in arch_orphan_cleanup.stdout'
+
+- name: "CLEANUP | ARCH | Clean package cache (keep 3 versions)"
+  ansible.builtin.shell: |
+    paccache -r -k 3
+    echo "Package cache cleaned"
+  become: true
+  register: cache_cleanup
+  changed_when: '"removing" in cache_cleanup.stdout'
+
+- name: "CLEANUP | ARCH | Clean uninstalled package cache"
+  ansible.builtin.shell: |
+    paccache -r -u -k 0
+    echo "Uninstalled package cache cleaned"
+  become: true
+  register: uninstalled_cache_cleanup
+  changed_when: '"removing" in uninstalled_cache_cleanup.stdout'
+
+- name: "CLEANUP | ARCH | Clear system logs older than 7 days"
+  ansible.builtin.shell: |
+    journalctl --vacuum-time=7d
+    echo "System logs cleaned"
+  become: true
+  register: log_cleanup
+  changed_when: '"Deleted archived journal" in log_cleanup.stdout'
+
+- name: "CLEANUP | ARCH | Clean temporary files"
+  ansible.builtin.shell: |
+    find /tmp -type f -atime +7 -delete 2>/dev/null || true
+    find /var/tmp -type f -atime +7 -delete 2>/dev/null || true
+    echo "Temporary files cleaned"
+  become: true
+  register: temp_cleanup
+  changed_when: false
+
+- name: "CLEANUP | ARCH | Clean user cache directories"
+  ansible.builtin.shell: |
+    if [ -d "$HOME/.cache" ]; then
+      find "$HOME/.cache" -type f -atime +30 -delete 2>/dev/null || true
+      echo "User cache cleaned"
+    fi
+  register: user_cache_cleanup
+  changed_when: false
+
+- name: "CLEANUP | ARCH | Update package database"
+  community.general.pacman:
+    update_cache: yes
+  become: true
+
+- name: "CLEANUP | ARCH | Display cleanup summary"
+  ansible.builtin.debug:
+    msg:
+      - "Arch Linux cleanup completed:"
+      - "- {{ 'Removed orphaned packages' if arch_orphan_cleanup.changed else 'No orphaned packages found' }}"
+      - "- {{ 'Cleaned package cache' if cache_cleanup.changed else 'Package cache already clean' }}"
+      - "- {{ 'Cleaned uninstalled package cache' if uninstalled_cache_cleanup.changed else 'Uninstalled cache already clean' }}"
+      - "- {{ 'Cleaned system logs' if log_cleanup.changed else 'No old logs to clean' }}"
+      - "- Cleaned temporary files"
+      - "- Cleaned user cache"
+      - "- Updated package database"

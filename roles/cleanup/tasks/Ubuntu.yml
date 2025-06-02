@@ -1,0 +1,68 @@
+---
+- name: "CLEANUP | UBUNTU | Remove orphaned packages"
+  ansible.builtin.apt:
+    autoremove: yes
+    purge: yes
+  become: true
+
+- name: "CLEANUP | UBUNTU | Clean package cache"
+  ansible.builtin.apt:
+    autoclean: yes
+  become: true
+
+- name: "CLEANUP | UBUNTU | Remove old kernel packages (keep current + 1)"
+  ansible.builtin.shell: |
+    CURRENT_KERNEL=$(uname -r)
+    KERNELS_TO_REMOVE=$(dpkg -l | grep -E '^ii\s+(linux-image|linux-headers|linux-modules)' | awk '{print $2}' | grep -v "$CURRENT_KERNEL" | sort -V | head -n -1)
+    if [ -n "$KERNELS_TO_REMOVE" ]; then
+      apt-get remove --purge -y $KERNELS_TO_REMOVE
+      echo "Removed old kernels: $KERNELS_TO_REMOVE"
+    else
+      echo "No old kernels to remove"
+    fi
+  become: true
+  register: kernel_cleanup
+  changed_when: '"Removed old kernels:" in kernel_cleanup.stdout'
+
+- name: "CLEANUP | UBUNTU | Clean snap cache"
+  ansible.builtin.shell: |
+    if command -v snap >/dev/null 2>&1; then
+      set +e
+      LANG=en_US.UTF-8 snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do
+        snap remove "$snapname" --revision="$revision" 2>/dev/null || true
+      done
+      echo "Snap cleanup completed"
+    else
+      echo "Snap not installed, skipping snap cleanup"
+    fi
+  become: true
+  register: snap_cleanup
+  changed_when: false
+
+- name: "CLEANUP | UBUNTU | Clear system logs older than 7 days"
+  ansible.builtin.shell: |
+    journalctl --vacuum-time=7d
+    echo "System logs cleaned"
+  become: true
+  register: log_cleanup
+  changed_when: '"Deleted archived journal" in log_cleanup.stdout'
+
+- name: "CLEANUP | UBUNTU | Clean temporary files"
+  ansible.builtin.shell: |
+    find /tmp -type f -atime +7 -delete 2>/dev/null || true
+    find /var/tmp -type f -atime +7 -delete 2>/dev/null || true
+    echo "Temporary files cleaned"
+  become: true
+  register: temp_cleanup
+  changed_when: false
+
+- name: "CLEANUP | UBUNTU | Display cleanup summary"
+  ansible.builtin.debug:
+    msg:
+      - "Ubuntu cleanup completed:"
+      - "- Removed orphaned packages"
+      - "- Cleaned package cache"
+      - "- {{ 'Cleaned old kernels' if kernel_cleanup.changed else 'No old kernels to clean' }}"
+      - "- {{ 'Cleaned snap cache' if 'snap' in snap_cleanup.stdout else 'Snap not available' }}"
+      - "- {{ 'Cleaned system logs' if log_cleanup.changed else 'No old logs to clean' }}"
+      - "- Cleaned temporary files"

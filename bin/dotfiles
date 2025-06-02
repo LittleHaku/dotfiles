@@ -578,8 +578,101 @@ function setup_ssh {
     done
 }
 
+# Show help information
+function show_help {
+    echo -e "${BLUE}DotFiles Management Script${NC}"
+    echo -e "${GREEN}Usage:${NC} dotfiles [COMMAND] [OPTIONS]"
+    echo
+    echo -e "${YELLOW}Commands:${NC}"
+    echo -e "  ${GREEN}install${NC}        Complete dotfiles setup (default)"
+    echo -e "  ${GREEN}cleanup${NC}        Run system cleanup (remove orphaned packages, clean caches)"
+    echo -e "  ${GREEN}help${NC}           Show this help message"
+    echo
+    echo -e "${YELLOW}Options:${NC}"
+    echo -e "  ${GREEN}--wsl${NC}          WSL-specific setup"
+    echo -e "  ${GREEN}--help, -h${NC}     Show this help message"
+    echo
+    echo -e "${YELLOW}Examples:${NC}"
+    echo -e "  ${BLUE}dotfiles${NC}                 # Full setup"
+    echo -e "  ${BLUE}dotfiles install${NC}         # Full setup (explicit)"
+    echo -e "  ${BLUE}dotfiles cleanup${NC}         # System cleanup only"
+    echo -e "  ${BLUE}dotfiles --wsl${NC}           # WSL-specific setup"
+}
+
+# Run cleanup only
+function run_cleanup {
+    echo -e "${ARROW} ${BLUE}Running system cleanup...${NC}\n"
+
+    # Detect OS
+    OS=$(detect_os)
+    __task "Detected OS: $OS"
+    if is_wsl; then
+        echo -e "${BLUE}Running in WSL environment${NC}"
+    fi
+    _task_done
+
+    # Ensure we're in the dotfiles directory
+    if [[ ! -d "$DOTFILES_DIR" ]]; then
+        _task_error "Dotfiles directory not found at $DOTFILES_DIR. Please run full setup first."
+    fi
+
+    cd "$DOTFILES_DIR"
+
+    # Run only the cleanup role
+    __task "Running cleanup tasks"
+    if [[ -f "main.yml" ]]; then
+        ansible-playbook main.yml --tags cleanup --ask-become-pass
+    else
+        _task_error "No main.yml playbook found"
+    fi
+    _task_done
+
+    echo -e "\n${CHECK_MARK} ${GREEN}System cleanup completed successfully!${NC}"
+}
+
 # Main execution
 function main {
+    # Parse command line arguments
+    local command=""
+    local wsl_flag=false
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            help|--help|-h)
+                show_help
+                exit 0
+                ;;
+            cleanup)
+                command="cleanup"
+                shift
+                ;;
+            install)
+                command="install"
+                shift
+                ;;
+            --wsl)
+                wsl_flag=true
+                shift
+                ;;
+            *)
+                # Unknown option, treat as ansible-playbook argument
+                break
+                ;;
+        esac
+    done
+
+    # Set default command if none specified
+    if [[ -z "$command" ]]; then
+        command="install"
+    fi
+
+    # Handle cleanup command
+    if [[ "$command" == "cleanup" ]]; then
+        run_cleanup
+        return 0
+    fi
+
+    # Continue with full setup for install command
     echo -e "${ARROW} ${BLUE}Starting dotfiles setup...${NC}\n"
 
     # Detect OS
