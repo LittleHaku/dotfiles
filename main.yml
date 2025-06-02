@@ -21,6 +21,7 @@
     # Update control variables
     auto_system_upgrade: true    # Set to false to skip system package upgrades
     auto_zinit_update: true      # Set to false to skip Zinit and plugin updates
+    auto_tmux_update: true       # Set to false to skip Tmux and plugin updates
 
   pre_tasks:
     - name: Detect WSL

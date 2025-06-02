@@ -69,14 +69,52 @@
   when: not tpm_installed.stat.exists
   ignore_errors: true
 
+- name: "{{ role_name | default('TMUX') }} | Update TPM (Tmux Plugin Manager)"
+  ansible.builtin.git:
+    repo: https://github.com/tmux-plugins/tpm
+    dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+    force: yes
+    update: yes
+  when: auto_tmux_update | default(true)
+  register: tpm_update_result
+
+- name: "{{ role_name | default('TMUX') }} | Install/Update Tmux plugins"
+  ansible.builtin.shell: |
+    # Ensure TPM scripts are executable
+    chmod +x ~/.tmux/plugins/tpm/bin/*
+    
+    # Install any missing plugins
+    ~/.tmux/plugins/tpm/bin/install_plugins
+    
+    # Update all plugins
+    ~/.tmux/plugins/tpm/bin/update_plugins all
+    
+    echo "Tmux plugins updated successfully"
+  register: tmux_plugins_update_result
+  when: auto_tmux_update | default(true)
+  changed_when: false
+  ignore_errors: true
+
+- name: "{{ role_name | default('TMUX') }} | Clean unused Tmux plugins"
+  ansible.builtin.shell: |
+    ~/.tmux/plugins/tpm/bin/clean_plugins
+    echo "Unused tmux plugins cleaned"
+  register: tmux_plugins_clean_result
+  when: auto_tmux_update | default(true)
+  changed_when: false
+  ignore_errors: true
+
 - name: "{{ role_name | default('TMUX') }} | Display tmux setup info"
   ansible.builtin.debug:
     msg:
       - "Tmux installed successfully"
       - "Configuration symlinked from {{ role_path }}/files/tmux.conf"
       - "TPM (Tmux Plugin Manager) installed"
+      - "{{ 'TPM updated successfully' if tpm_update_result is defined and tpm_update_result.changed else 'TPM already up to date' }}"
+      - "{{ 'Tmux plugins updated' if tmux_plugins_update_result is defined and tmux_plugins_update_result.rc == 0 else 'Plugin update skipped or failed' }}"
+      - "{{ 'Unused plugins cleaned' if tmux_plugins_clean_result is defined and tmux_plugins_clean_result.rc == 0 else 'Plugin cleanup skipped' }}"
       - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      - "🚀 IMPORTANT: To install tmux plugins, run: tmux"
-      - "   Then press: Ctrl+s followed by I (capital i)"
+      - "🚀 Tmux plugins are now auto-updated!"
+      - "   Manual plugin update: Ctrl+s followed by U (capital u)"
       - "   Prefix key is set to Ctrl+s"
       - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
