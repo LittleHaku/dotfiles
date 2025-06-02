@@ -1,4 +1,12 @@
 ---
+- name: "CLEANUP | ARCH | Update package database and upgrade system"
+  community.general.pacman:
+    update_cache: yes
+    upgrade: yes
+  become: true
+  when: auto_system_upgrade | default(true)
+  register: system_upgrade_result
+
 - name: "CLEANUP | ARCH | Check for orphaned packages"
   ansible.builtin.shell: "pacman -Qtdq"
   become: true
@@ -65,6 +73,7 @@
   ansible.builtin.debug:
     msg:
       - "Arch Linux cleanup completed:"
+      - "- {{ 'System packages upgraded' if system_upgrade_result is defined and system_upgrade_result.changed else 'System upgrade skipped or no updates available' }}"
       - "- {{ 'Removed orphaned packages' if (arch_orphan_cleanup is defined and arch_orphan_cleanup.changed) else 'No orphaned packages found' }}"
       - "- {{ 'Cleaned package cache' if cache_cleanup.changed else 'Package cache already clean' }}"
       - "- {{ 'Cleaned uninstalled package cache' if uninstalled_cache_cleanup.changed else 'Uninstalled cache already clean' }}"

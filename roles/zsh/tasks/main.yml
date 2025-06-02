@@ -47,6 +47,38 @@
     dest: "{{ ansible_env.HOME }}/.zshrc"
     state: link
 
+- name: "ZSH | Update Zinit plugin manager"
+  ansible.builtin.shell: |
+    export ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+    if [ -d "$ZINIT_HOME" ]; then
+      cd "$ZINIT_HOME" && git pull
+      echo "Zinit updated successfully"
+    else
+      echo "Zinit not found, skipping update"
+    fi
+  args:
+    executable: /bin/bash
+  register: zinit_update_result
+  changed_when: '"Already up to date" not in zinit_update_result.stdout'
+  when: auto_zinit_update | default(true)
+
+- name: "ZSH | Update Zinit plugins"
+  ansible.builtin.shell: |
+    export ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+    if [ -d "$ZINIT_HOME" ]; then
+      source "${ZINIT_HOME}/zinit.zsh"
+      zinit update --all
+      echo "Zinit plugins updated successfully"
+    else
+      echo "Zinit not found, skipping plugin updates"
+    fi
+  args:
+    executable: /bin/zsh
+  register: zinit_plugins_update_result
+  changed_when: false
+  when: auto_zinit_update | default(true)
+  ignore_errors: true
+
 - name: Display shell info
   ansible.builtin.debug:
     msg:
@@ -54,6 +86,8 @@
       - "Zsh path: {{ zsh_path.stdout }}"
       - "Zsh installation complete"
       - ".zshrc symlinked from {{ playbook_dir }}/roles/zsh/files/.zshrc"
+      - "{{ 'Zinit updated successfully' if zinit_update_result is defined and zinit_update_result.changed else 'Zinit update skipped or already up to date' }}"
+      - "{{ 'Zinit plugins updated' if zinit_plugins_update_result is defined and zinit_plugins_update_result.rc == 0 else 'Zinit plugin update skipped or failed' }}"
 
 - name: Include lsd role
   ansible.builtin.include_role:

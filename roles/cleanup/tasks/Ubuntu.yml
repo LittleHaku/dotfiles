@@ -1,4 +1,27 @@
 ---
+- name: "CLEANUP | UBUNTU | Update package lists"
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: "CLEANUP | UBUNTU | Upgrade all packages (safe mode)"
+  ansible.builtin.apt:
+    upgrade: safe
+    autoremove: yes
+    autoclean: yes
+  become: true
+  when: auto_system_upgrade | default(true) and system_upgrade_mode | default('safe') == 'safe'
+  register: system_upgrade_result
+
+- name: "CLEANUP | UBUNTU | Upgrade all packages (full mode - use with caution)"
+  ansible.builtin.apt:
+    upgrade: full
+    autoremove: yes
+    autoclean: yes
+  become: true
+  when: auto_system_upgrade | default(true) and system_upgrade_mode | default('safe') == 'full'
+  register: system_upgrade_result
+
 - name: "CLEANUP | UBUNTU | Remove orphaned packages"
   ansible.builtin.apt:
     autoremove: yes
@@ -60,6 +83,7 @@
   ansible.builtin.debug:
     msg:
       - "Ubuntu cleanup completed:"
+      - "- {{ 'System packages upgraded' if system_upgrade_result is defined and system_upgrade_result.changed else 'System upgrade skipped or no updates available' }}"
       - "- Removed orphaned packages"
       - "- Cleaned package cache"
       - "- {{ 'Cleaned old kernels' if kernel_cleanup.changed else 'No old kernels to clean' }}"
