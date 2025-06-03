@@ -123,12 +123,22 @@ alias ziupg='zinit update --all'
 alias usage='du -h -d1'
 
 # lsd
+# alias lsn='ls'
+# alias ll='lsd -lh --group-dirs=first'
+# alias la='lsd -a --group-dirs=first'
+# alias l='lsd --group-dirs=first'
+# alias lla='lsd -lha --group-dirs=first'
+# alias ls='lsd --group-dirs=first'
+
+# eza
 alias lsn='ls'
-alias ll='lsd -lh --group-dirs=first'
-alias la='lsd -a --group-dirs=first'
-alias l='lsd --group-dirs=first'
-alias lla='lsd -lha --group-dirs=first'
-alias ls='lsd --group-dirs=first'
+alias ll='eza -l --group-directories-first --icons --git'
+alias la='eza -a --group-directories-first --icons'
+alias l='eza --group-directories-first --icons'
+alias lla='eza -la --group-directories-first --icons --git'
+alias ls='eza --group-directories-first --icons'
+alias lt='eza --tree --level=2 --group-directories-first --icons'  # Tree view with 2 levels
+
 
 # tmux
 
