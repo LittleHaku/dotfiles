@@ -97,6 +97,13 @@ fi
 # Custom Aliases #
 ##################
 
+# Dirs
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+alias ......="cd ../../../../.."
+
 # nvim
 alias vi='nvim'
 alias vim='nvim'
