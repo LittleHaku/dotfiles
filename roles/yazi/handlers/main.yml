@@ -1,0 +1,29 @@
+---
+- name: "Install Yazi Binary"
+  ansible.builtin.copy:
+    src: "{{ ansible_user_dir }}/yazi-build/target/release/yazi"
+    dest: "{{ ansible_user_dir }}/.local/bin/yazi"
+    mode: '0755'
+    remote_src: yes
+  become: false
+
+- name: "Install Ya Binary"
+  ansible.builtin.copy:
+    src: "{{ ansible_user_dir }}/yazi-build/target/release/ya"
+    dest: "{{ ansible_user_dir }}/.local/bin/ya"
+    mode: '0755'
+    remote_src: yes
+  become: false
+
+- name: "Ensure .local/bin is in PATH"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.zshrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+  become: false
+
+- name: "Cleanup build directory"
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/yazi-build"
+    state: absent
+  become: false

@@ -187,3 +187,4 @@ fi
 # if [[ "$PROFILE_STARTUP" == true ]]; then
 #   zprof
 # fi
+export PATH="$HOME/.local/bin:$PATH"

@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install yazi (terminal file manager) with optional dependencies
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: ArchLinux
+      versions:
+        - all
+  galaxy_tags:
+    - cli-tools
+    - terminal
+    - file-manager
+    - utilities
+    - rust
+
+dependencies: []

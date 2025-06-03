@@ -1,0 +1,71 @@
+---
+- name: "YAZI | UBUNTU | Install optional dependencies"
+  ansible.builtin.apt:
+    name:
+      - ffmpeg
+      - p7zip-full
+      - jq
+      - poppler-utils
+      - fd-find
+      - ripgrep
+      - fzf
+      - zoxide
+      - imagemagick
+    state: present
+    update_cache: yes
+  become: true
+
+- name: "YAZI | UBUNTU | Check if Rust is installed"
+  ansible.builtin.shell: command -v cargo || echo "not found"
+  register: cargo_check
+  failed_when: false
+  changed_when: false
+
+- name: "YAZI | UBUNTU | Install Rust if not present"
+  ansible.builtin.shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  args:
+    executable: /bin/bash
+  when: "'not found' in cargo_check.stdout"
+  become: false
+
+- name: "YAZI | UBUNTU | Ensure cargo environment is available"
+  ansible.builtin.stat:
+    path: "{{ ansible_user_dir }}/.cargo/env"
+  register: cargo_env_file
+
+- name: "YAZI | UBUNTU | Clone Yazi repository"
+  ansible.builtin.git:
+    repo: https://github.com/sxyazi/yazi.git
+    dest: "{{ ansible_user_dir }}/yazi-build"
+    force: yes
+    update: yes
+  register: yazi_clone
+
+- name: "YAZI | UBUNTU | Ensure .local/bin directory exists"
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.local/bin"
+    state: directory
+    mode: '0755'
+  become: false
+
+- name: "YAZI | UBUNTU | Check if yazi is already installed"
+  ansible.builtin.stat:
+    path: "{{ ansible_user_dir }}/.local/bin/yazi"
+  register: yazi_installed
+
+- name: "YAZI | UBUNTU | Build Yazi"
+  ansible.builtin.shell: |
+    export PATH="$HOME/.cargo/bin:$PATH"
+    cd {{ ansible_user_dir }}/yazi-build
+    cargo build --release --locked
+  args:
+    executable: /bin/bash
+  register: yazi_build
+  become: false
+  when: not yazi_installed.stat.exists or yazi_clone.changed
+  notify: 
+    - "Install Yazi Binary"
+    - "Install Ya Binary"
+    - "Ensure .local/bin is in PATH"
+    - "Cleanup build directory"

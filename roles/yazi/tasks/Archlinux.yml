@@ -1,0 +1,33 @@
+---
+- name: "YAZI | ARCH | Install yazi and dependencies via pacman"
+  community.general.pacman:
+    name:
+      - yazi
+      - ffmpeg
+      - p7zip
+      - jq
+      - poppler
+      - fd
+      - ripgrep
+      - fzf
+      - zoxide
+      - imagemagick
+    state: latest
+  become: true
+
+- name: "YAZI | ARCH | Install resvg via paru (AUR)"
+  ansible.builtin.shell: |
+    if command -v paru >/dev/null 2>&1; then
+      paru -S --noconfirm resvg
+    elif command -v yay >/dev/null 2>&1; then
+      yay -S --noconfirm resvg
+    else
+      echo "No AUR helper found. Please install resvg manually."
+      exit 1
+    fi
+  register: aur_install_result
+  failed_when: 
+    - aur_install_result.rc != 0
+    - "'No AUR helper found' not in aur_install_result.stdout"
+  changed_when: "'installing' in aur_install_result.stdout or 'reinstalling' in aur_install_result.stdout"
+  become: false

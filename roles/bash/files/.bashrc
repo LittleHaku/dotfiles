@@ -188,3 +188,4 @@ fi
 
 # Allow mouse scroll in less (batcat)
 export LESS='-R --mouse'
+. "$HOME/.cargo/env"
