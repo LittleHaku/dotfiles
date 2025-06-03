@@ -1,0 +1,28 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install eza (modern ls replacement) command-line tool
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: ArchLinux
+      versions:
+        - all
+  galaxy_tags:
+    - cli-tools
+    - terminal
+    - development
+    - utilities
+    - ls
+    - eza
+
+dependencies: []

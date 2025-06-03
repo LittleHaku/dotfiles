@@ -78,7 +78,8 @@
       - tmux
       - pdflatex
       - fzf
-      - lsd
+      # - lsd
+      - eza
       - bat
       - cleanup
 

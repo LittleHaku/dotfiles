@@ -1,0 +1,6 @@
+---
+- name: "EZA | ARCH | Install eza"
+  community.general.pacman:
+    name: eza
+    state: latest
+  become: true

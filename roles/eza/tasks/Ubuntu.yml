@@ -1,0 +1,48 @@
+---
+- name: "EZA | UBUNTU | Ensure gpg is installed"
+  ansible.builtin.apt:
+    name: gpg
+    state: present
+    update_cache: yes
+  become: true
+
+- name: "EZA | UBUNTU | Create APT keyrings directory"
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: "EZA | UBUNTU | Download and add EZA GPG key"
+  ansible.builtin.shell: |
+    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  become: true
+  args:
+    creates: /etc/apt/keyrings/gierens.gpg
+
+- name: "EZA | UBUNTU | Add EZA repository"
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main"
+    filename: gierens
+    state: present
+  become: true
+
+- name: "EZA | UBUNTU | Set proper permissions for GPG key and repository file"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: '0644'
+  become: true
+  loop:
+    - /etc/apt/keyrings/gierens.gpg
+    - /etc/apt/sources.list.d/gierens.list
+
+- name: "EZA | UBUNTU | Update apt cache"
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: "EZA | UBUNTU | Install eza"
+  ansible.builtin.apt:
+    name: eza
+    state: present
+  become: true
