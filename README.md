@@ -87,3 +87,10 @@ For a general Tmux cheatsheet, see: [tmuxcheatsheet.com](https://tmuxcheatsheet.
 - **Reload Tmux Config:** `leader + R` (ensure this is mapped in your `tmux.conf`).
 - **Install TPM Plugins:** `leader + I` (capital 'i') (after adding them to `tmux.conf`).
 - **Vim-style navigation between panes:** `leader + h, j, k, l` (if configured).
+
+---
+## CLI Tools
+
+### yazi
+
+Check: https://www.youtube.com/watch?v=iKb3cHDD9hw
