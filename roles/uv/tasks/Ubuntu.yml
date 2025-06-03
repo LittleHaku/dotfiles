@@ -12,9 +12,18 @@
     creates: "{{ ansible_env.HOME }}/.local/bin/uv"
   when: uv_version_check.rc != 0
 
-- name: "UV | UBUNTU | Update uv if already installed"
+- name: "UV | UBUNTU | Try to update uv via self-update"
   ansible.builtin.command: uv self update
+  register: uv_self_update_result
+  failed_when: false
   when: uv_version_check.rc == 0
+
+- name: "UV | UBUNTU | Reinstall uv via official installer if self-update failed"
+  ansible.builtin.shell: |
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+  when:
+    - uv_version_check.rc == 0
+    - uv_self_update_result.rc != 0
 
 - name: "UV | UBUNTU | Verify uv installation"
   ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv --version"
