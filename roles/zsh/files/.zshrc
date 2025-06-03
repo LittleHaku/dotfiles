@@ -104,6 +104,9 @@ alias ....="cd ../../.."
 alias .....="cd ../../../.."
 alias ......="cd ../../../../.."
 
+# Clear terminal
+alias cl='clear'
+
 # nvim
 alias vi='nvim'
 alias vim='nvim'
