@@ -183,8 +183,24 @@ if [[ -f ~/.fzf.zsh ]]; then
   source ~/.fzf.zsh
 fi
 
+
+
+
+export PATH="$HOME/.local/bin:$PATH"
+
+################
+# YAZI AUTO CD #
+################
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+
 # End startup time measurement - UNCOMMENT FOR USE, COMMENT OUT FOR NORMAL OPERATION
 # if [[ "$PROFILE_STARTUP" == true ]]; then
 #   zprof
 # fi
-export PATH="$HOME/.local/bin:$PATH"
