@@ -9,7 +9,6 @@
       - poppler
       - fd
       - ripgrep
-      - fzf
       - zoxide
       - imagemagick
     state: latest
@@ -26,7 +25,7 @@
       exit 1
     fi
   register: aur_install_result
-  failed_when: 
+  failed_when:
     - aur_install_result.rc != 0
     - "'No AUR helper found' not in aur_install_result.stdout"
   changed_when: "'installing' in aur_install_result.stdout or 'reinstalling' in aur_install_result.stdout"

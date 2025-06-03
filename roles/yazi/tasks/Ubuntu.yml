@@ -8,7 +8,6 @@
       - poppler-utils
       - fd-find
       - ripgrep
-      - fzf
       - zoxide
       - imagemagick
     state: present
@@ -64,7 +63,7 @@
   register: yazi_build
   become: false
   when: not yazi_installed.stat.exists or yazi_clone.changed
-  notify: 
+  notify:
     - "Install Yazi Binary"
     - "Install Ya Binary"
     - "Ensure .local/bin is in PATH"
