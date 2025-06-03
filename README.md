@@ -1,8 +1,10 @@
 # dotfiles
 
-My personal configurations for a productive development environment, managed with `stow` and an automated bootstrap script.
+My personal configurations for a productive development environment, previously managed with Stow, now is an idempotent ansible playbook!
 
 This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, PyEnv, uv, Neovim, and other CLI tools.
+
+Lots of inspiration has been taken from this highly suggested video: [My Neovim & Tmux Terminal Dev Workflow as a Principal Engineer](https://www.youtube.com/watch?v=yCgieVu13VQ)
 
 ---
 
