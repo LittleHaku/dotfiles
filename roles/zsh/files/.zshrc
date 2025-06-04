@@ -172,10 +172,7 @@ if [[ -f ~/.fzf.zsh ]]; then
   source ~/.fzf.zsh
 fi
 
-# zoxide shell integration
-if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
-fi
+
 
 # Add cargo bin to PATH if it exists
 if [[ -d "$HOME/.cargo/bin" ]]; then
@@ -195,6 +192,12 @@ function y() {
 	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
+
+# load last
+# zoxide shell integration
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
 
 # End startup time measurement - UNCOMMENT FOR USE, COMMENT OUT FOR NORMAL OPERATION
 # if [[ "$PROFILE_STARTUP" == true ]]; then
