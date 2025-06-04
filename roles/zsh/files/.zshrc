@@ -177,8 +177,10 @@ if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 fi
 
-
-
+# Add cargo bin to PATH if it exists
+if [[ -d "$HOME/.cargo/bin" ]]; then
+    export PATH="$HOME/.cargo/bin:$PATH"
+fi
 
 export PATH="$HOME/.local/bin:$PATH"
 
