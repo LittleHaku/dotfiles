@@ -1,9 +1,14 @@
 ---
-- name: "ZOXIDE | Include OS-specific tasks"
-  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
-  when: ansible_os_family in ['Debian', 'Archlinux']
+- name: "ZOXIDE | Checking for Distribution Config: {{ ansible_distribution }}"
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/{{ ansible_distribution }}.yml"
+  register: distribution_config
 
-- name: "ZOXIDE | Unsupported OS family"
+- name: "ZOXIDE | Run Tasks: {{ ansible_distribution }}"
+  ansible.builtin.include_tasks: "{{ ansible_distribution }}.yml"
+  when: distribution_config.stat.exists
+
+- name: "ZOXIDE | Fallback message when no distribution config exists"
   ansible.builtin.debug:
-    msg: "OS family '{{ ansible_os_family }}' is not supported for zoxide installation"
-  when: ansible_os_family not in ['Debian', 'Archlinux']
+    msg: "No specific configuration found for {{ ansible_distribution }}. Please install zoxide manually."
+  when: not distribution_config.stat.exists

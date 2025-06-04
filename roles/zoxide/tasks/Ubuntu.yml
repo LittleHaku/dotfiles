@@ -24,7 +24,7 @@
 - name: "ZOXIDE | UBUNTU | Display installation result"
   ansible.builtin.debug:
     msg: "Zoxide installation completed successfully"
-  when: zoxide_install is defined and zoxide_install.rc == 0
+  when: zoxide_install is defined and not zoxide_install.skipped and zoxide_install.rc == 0
 
 - name: "ZOXIDE | UBUNTU | Display already installed message"
   ansible.builtin.debug:
