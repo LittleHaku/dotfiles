@@ -35,9 +35,9 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 # disable default completion to use fzf
 zstyle ':completion:*' menu no
 # add fzf preview for cd
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd --group-dirs=first'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --group-directories-first --icons'
 # add fzf preview for z
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'lsd --group-dirs=first'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --group-directories-first --icons'
 
 # Pure theme - light priority
 zinit ice lucid pick"async.zsh" src"pure.zsh"
@@ -128,14 +128,6 @@ alias ziupg='zinit update --all'
 
 # folder usage
 alias usage='du -h -d1'
-
-# lsd
-# alias lsn='ls'
-# alias ll='lsd -lh --group-dirs=first'
-# alias la='lsd -a --group-dirs=first'
-# alias l='lsd --group-dirs=first'
-# alias lla='lsd -lha --group-dirs=first'
-# alias ls='lsd --group-dirs=first'
 
 # eza
 alias lsn='ls'
