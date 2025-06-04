@@ -1,0 +1,54 @@
+---
+- name: "DIFFTASTIC | UBUNTU | Ensure build-essential is installed"
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+    update_cache: yes
+  become: true
+
+- name: "DIFFTASTIC | UBUNTU | Check if Rust is installed"
+  ansible.builtin.shell: command -v cargo || echo "not found"
+  register: cargo_check
+  failed_when: false
+  changed_when: false
+
+- name: "DIFFTASTIC | UBUNTU | Fail if Rust is not installed"
+  ansible.builtin.fail:
+    msg: "Rust is required to build difftastic. Please ensure the rust role is included as a dependency."
+  when: "'not found' in cargo_check.stdout"
+
+- name: "DIFFTASTIC | UBUNTU | Check if difftastic is already installed"
+  ansible.builtin.shell: |
+    source {{ ansible_user_dir }}/.cargo/env
+    command -v difft || echo "not found"
+  register: difftastic_check
+  failed_when: false
+  changed_when: false
+  args:
+    executable: /bin/bash
+
+- name: "DIFFTASTIC | UBUNTU | Install difftastic via cargo"
+  ansible.builtin.shell: |
+    source {{ ansible_user_dir }}/.cargo/env
+    cargo install --locked difftastic
+  args:
+    executable: /bin/bash
+  when: "'not found' in difftastic_check.stdout"
+  become: false
+  environment:
+    PATH: "{{ ansible_user_dir }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+- name: "DIFFTASTIC | UBUNTU | Verify difftastic installation"
+  ansible.builtin.shell: |
+    source {{ ansible_user_dir }}/.cargo/env
+    difft --version
+  register: difftastic_version
+  failed_when: false
+  changed_when: false
+  args:
+    executable: /bin/bash
+
+- name: "DIFFTASTIC | UBUNTU | Display difftastic version"
+  ansible.builtin.debug:
+    msg: "Difftastic installed: {{ difftastic_version.stdout }}"
+  when: difftastic_version.rc == 0

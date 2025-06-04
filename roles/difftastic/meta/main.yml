@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install difftastic - a structural diff tool
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: ArchLinux
+      versions:
+        - all
+
+dependencies:
+  - role: rust
+    when: ansible_distribution == "Ubuntu"

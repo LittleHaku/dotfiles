@@ -1,0 +1,6 @@
+---
+- name: "DIFFTASTIC | ARCH | Install difftastic"
+  community.general.pacman:
+    name: difftastic
+    state: latest
+  become: true
