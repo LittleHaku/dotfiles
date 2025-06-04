@@ -7,8 +7,6 @@
       - p7zip
       - jq
       - poppler
-      - fd
-      - ripgrep
       - imagemagick
     state: latest
   become: true

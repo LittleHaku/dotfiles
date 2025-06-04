@@ -80,6 +80,7 @@
       - pdflatex
       - fzf
       - fd
+      - ripgrep
       - zoxide
       # - lsd
       - eza

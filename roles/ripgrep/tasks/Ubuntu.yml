@@ -1,0 +1,16 @@
+---
+- name: "RIPGREP | UBUNTU | Get latest release URL"
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/BurntSushi/ripgrep/releases/latest"
+    return_content: yes
+  register: ripgrep_latest_release
+
+- name: "RIPGREP | UBUNTU | Set download URL for amd64"
+  ansible.builtin.set_fact:
+    ripgrep_deb_url: "{{ ripgrep_latest_release.json.assets | selectattr('name', 'match', '.*_amd64\\.deb$') | map(attribute='browser_download_url') | first }}"
+
+- name: "RIPGREP | UBUNTU | Install latest .deb package"
+  ansible.builtin.apt:
+    deb: "{{ ripgrep_deb_url }}"
+    state: present
+  become: true

@@ -6,8 +6,6 @@
       - p7zip-full
       - jq
       - poppler-utils
-      - fd-find
-      - ripgrep
       - imagemagick
     state: present
     update_cache: yes
