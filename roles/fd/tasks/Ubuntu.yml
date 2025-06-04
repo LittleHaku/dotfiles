@@ -1,0 +1,75 @@
+---
+- name: "FD | UBUNTU | Install fd-find (Ubuntu 19.04+)"
+  ansible.builtin.apt:
+    name: fd-find
+    state: present
+    update_cache: yes
+  become: true
+  when: ansible_distribution_version is version('19.04', '>=')
+
+- name: "FD | UBUNTU | Ensure .local/bin directory exists"
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.local/bin"
+    state: directory
+    mode: '0755'
+  become: false
+  when: ansible_distribution_version is version('19.04', '>=')
+
+- name: "FD | UBUNTU | Create symlink from fdfind to fd"
+  ansible.builtin.shell: |
+    if command -v fdfind >/dev/null 2>&1; then
+      ln -sf $(which fdfind) {{ ansible_user_dir }}/.local/bin/fd
+    fi
+  args:
+    executable: /bin/bash
+  become: false
+  when: ansible_distribution_version is version('19.04', '>=')
+  register: fd_symlink
+  changed_when: fd_symlink.rc == 0
+
+- name: "FD | UBUNTU | Ensure .local/bin is in PATH"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.profile"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+    state: present
+  become: false
+  when: ansible_distribution_version is version('19.04', '>=')
+
+- name: "FD | UBUNTU | Get latest release for older Ubuntu versions"
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/sharkdp/fd/releases/latest"
+    return_content: yes
+  register: fd_latest_release
+  when: ansible_distribution_version is version('19.04', '<')
+
+- name: "FD | UBUNTU | Set download URL for amd64 (older Ubuntu)"
+  ansible.builtin.set_fact:
+    fd_deb_url: "{{ fd_latest_release.json.assets | selectattr('name', 'match', '.*_amd64\\.deb$') | map(attribute='browser_download_url') | first }}"
+  when: ansible_distribution_version is version('19.04', '<')
+
+- name: "FD | UBUNTU | Install latest .deb package (older Ubuntu)"
+  ansible.builtin.apt:
+    deb: "{{ fd_deb_url }}"
+    state: present
+  become: true
+  when: ansible_distribution_version is version('19.04', '<')
+
+- name: "FD | UBUNTU | Verify fd installation"
+  ansible.builtin.shell: |
+    if command -v fd >/dev/null 2>&1; then
+      fd --version
+    elif command -v fdfind >/dev/null 2>&1; then
+      fdfind --version
+    else
+      echo "fd not found"
+      exit 1
+    fi
+  register: fd_version
+  failed_when: false
+  changed_when: false
+
+- name: "FD | UBUNTU | Display installation result"
+  ansible.builtin.debug:
+    msg: "FD installed successfully: {{ fd_version.stdout }}"
+  when: fd_version.rc == 0

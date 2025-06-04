@@ -1,0 +1,17 @@
+---
+- name: "FD | ARCH | Install fd"
+  community.general.pacman:
+    name: fd
+    state: present
+  become: true
+
+- name: "FD | ARCH | Verify fd installation"
+  ansible.builtin.shell: fd --version
+  register: fd_version
+  failed_when: false
+  changed_when: false
+
+- name: "FD | ARCH | Display installation result"
+  ansible.builtin.debug:
+    msg: "FD installed successfully: {{ fd_version.stdout }}"
+  when: fd_version.rc == 0

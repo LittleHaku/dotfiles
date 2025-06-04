@@ -1,0 +1,14 @@
+---
+- name: "{{ role_name | default('FD') }} | Checking for Distribution Config: {{ ansible_distribution }}"
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/{{ ansible_distribution }}.yml"
+  register: distribution_config
+
+- name: "{{ role_name | default('FD') }} | Run Tasks: {{ ansible_distribution }}"
+  ansible.builtin.include_tasks: "{{ ansible_distribution }}.yml"
+  when: distribution_config.stat.exists
+
+- name: "{{ role_name | default('FD') }} | Fallback: Distribution not supported"
+  ansible.builtin.debug:
+    msg: "FD installation not implemented for {{ ansible_distribution }}. Please install manually."
+  when: not distribution_config.stat.exists

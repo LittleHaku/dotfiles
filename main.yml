@@ -79,6 +79,7 @@
       - tmux
       - pdflatex
       - fzf
+      - fd
       - zoxide
       # - lsd
       - eza
