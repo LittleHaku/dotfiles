@@ -1,0 +1,14 @@
+---
+- name: "RUST | ARCHLINUX | Install Rust via pacman"
+  community.general.pacman:
+    name:
+      - rust
+      - cargo
+    state: present
+  become: true
+
+- name: "RUST | ARCHLINUX | Verify Rust installation"
+  ansible.builtin.shell: cargo --version
+  register: rust_version
+  failed_when: false
+  changed_when: false

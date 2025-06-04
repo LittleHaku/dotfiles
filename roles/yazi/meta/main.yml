@@ -20,4 +20,5 @@ galaxy_info:
     - utilities
     - rust
 
-dependencies: []
+dependencies:
+  - name: rust

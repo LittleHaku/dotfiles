@@ -13,25 +13,6 @@
     update_cache: yes
   become: true
 
-- name: "YAZI | UBUNTU | Check if Rust is installed"
-  ansible.builtin.shell: command -v cargo || echo "not found"
-  register: cargo_check
-  failed_when: false
-  changed_when: false
-
-- name: "YAZI | UBUNTU | Install Rust if not present"
-  ansible.builtin.shell: |
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-  args:
-    executable: /bin/bash
-  when: "'not found' in cargo_check.stdout"
-  become: false
-
-- name: "YAZI | UBUNTU | Ensure cargo environment is available"
-  ansible.builtin.stat:
-    path: "{{ ansible_user_dir }}/.cargo/env"
-  register: cargo_env_file
-
 - name: "YAZI | UBUNTU | Clone Yazi repository"
   ansible.builtin.git:
     repo: https://github.com/sxyazi/yazi.git

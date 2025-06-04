@@ -1,0 +1,31 @@
+---
+- name: "RUST | UBUNTU | Check if Rust is installed"
+  ansible.builtin.shell: command -v cargo || echo "not found"
+  register: cargo_check
+  failed_when: false
+  changed_when: false
+
+- name: "RUST | UBUNTU | Install Rust via rustup"
+  ansible.builtin.shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_user_dir }}/.cargo/bin/cargo"
+  when: "'not found' in cargo_check.stdout"
+  become: false
+
+- name: "RUST | UBUNTU | Ensure cargo environment is available"
+  ansible.builtin.stat:
+    path: "{{ ansible_user_dir }}/.cargo/env"
+  register: cargo_env_file
+
+- name: "RUST | UBUNTU | Verify Rust installation"
+  ansible.builtin.shell: |
+    source {{ ansible_user_dir }}/.cargo/env
+    cargo --version
+  args:
+    executable: /bin/bash
+  register: rust_version
+  failed_when: false
+  changed_when: false
+  when: cargo_env_file.stat.exists

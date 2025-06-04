@@ -74,6 +74,7 @@
       - bash
       - zsh
       - git
+      - rust
       - uv
       - tmux
       - pdflatex

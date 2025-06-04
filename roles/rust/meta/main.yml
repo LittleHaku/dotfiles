@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install Rust programming language and Cargo package manager
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: Archlinux
+      versions:
+        - all
+
+dependencies: []
