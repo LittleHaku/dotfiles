@@ -1,0 +1,32 @@
+---
+- name: "ZOXIDE | UBUNTU | Check if zoxide is already installed"
+  ansible.builtin.shell: command -v zoxide
+  register: zoxide_check
+  failed_when: false
+  changed_when: false
+
+- name: "ZOXIDE | UBUNTU | Install zoxide via installer script"
+  ansible.builtin.shell: |
+    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+  register: zoxide_install
+  when: zoxide_check.rc != 0
+  become: false
+
+- name: "ZOXIDE | UBUNTU | Ensure .local/bin is in PATH"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.profile"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: yes
+    state: present
+  when: zoxide_check.rc != 0
+  become: false
+
+- name: "ZOXIDE | UBUNTU | Display installation result"
+  ansible.builtin.debug:
+    msg: "Zoxide installation completed successfully"
+  when: zoxide_install is defined and zoxide_install.rc == 0
+
+- name: "ZOXIDE | UBUNTU | Display already installed message"
+  ansible.builtin.debug:
+    msg: "Zoxide is already installed"
+  when: zoxide_check.rc == 0

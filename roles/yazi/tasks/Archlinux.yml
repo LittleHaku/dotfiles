@@ -9,7 +9,6 @@
       - poppler
       - fd
       - ripgrep
-      - zoxide
       - imagemagick
     state: latest
   become: true

@@ -73,9 +73,6 @@ zinit ice wait'!' lucid
 zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
 
 zinit ice wait'!' lucid
-zinit light agkozak/zsh-z
-
-zinit ice wait'!' lucid
 zinit snippet OMZP::command-not-found
 
 # Add PyEnv - already async
@@ -181,6 +178,11 @@ fi
 # Also source the fzf.zsh file if it exists (for additional configurations)
 if [[ -f ~/.fzf.zsh ]]; then
   source ~/.fzf.zsh
+fi
+
+# zoxide shell integration
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
 fi
 
 

@@ -1,0 +1,9 @@
+---
+- name: "ZOXIDE | Include OS-specific tasks"
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
+  when: ansible_os_family in ['Debian', 'Archlinux']
+
+- name: "ZOXIDE | Unsupported OS family"
+  ansible.builtin.debug:
+    msg: "OS family '{{ ansible_os_family }}' is not supported for zoxide installation"
+  when: ansible_os_family not in ['Debian', 'Archlinux']

@@ -8,7 +8,6 @@
       - poppler-utils
       - fd-find
       - ripgrep
-      - zoxide
       - imagemagick
     state: present
     update_cache: yes
