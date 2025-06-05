@@ -40,6 +40,9 @@ bindkey '^[[1;5C' forward-word      # Ctrl+Right
 bindkey '^[[1;5D' backward-word     # Ctrl+Left
 bindkey '^[[3;5~' kill-word         # Ctrl+Delete
 
+# Vim motions
+set -o vi
+
 ###################
 # COMPLETIONS     #
 ###################
