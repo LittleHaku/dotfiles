@@ -165,6 +165,126 @@ try {
     Write-Host "After restart, WSL will continue setup automatically."
 }
 
+# WSL Configuration Setup
+Write-Host "`nSetting up WSL configuration..." -ForegroundColor Cyan
+$WslConfigPath = "$env:USERPROFILE\.wslconfig"
+
+# Function to get system memory in GB
+function Get-SystemMemoryGB {
+    try {
+        $totalMemory = (Get-CimInstance -ClassName Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB
+        return [math]::Floor($totalMemory)
+    } catch {
+        Write-Warning "Could not detect system memory. Using default values."
+        return 16  # Default fallback
+    }
+}
+
+# Function to get CPU core count
+function Get-CPUCoreCount {
+    try {
+        $cores = (Get-CimInstance -ClassName Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum
+        return $cores
+    } catch {
+        Write-Warning "Could not detect CPU cores. Using default values."
+        return 4  # Default fallback
+    }
+}
+
+# Get system specifications
+$totalMemoryGB = Get-SystemMemoryGB
+$totalCores = Get-CPUCoreCount
+
+# Calculate optimal WSL resource allocation
+# Memory: Use 50-75% of available RAM for WSL, but cap at reasonable limits
+if ($totalMemoryGB -le 8) {
+    $wslMemoryGB = 4
+    $wslSwapGB = 4
+} elseif ($totalMemoryGB -le 16) {
+    $wslMemoryGB = 8
+    $wslSwapGB = 8
+} elseif ($totalMemoryGB -le 32) {
+    $wslMemoryGB = 16
+    $wslSwapGB = 16
+} else {
+    $wslMemoryGB = 24
+    $wslSwapGB = 16
+}
+
+# CPU: Leave at least 1-2 cores for Windows, but ensure WSL gets at least 2
+$wslProcessors = [math]::Max(2, [math]::Min($totalCores - 1, $totalCores - 2))
+if ($totalCores -le 4) {
+    $wslProcessors = [math]::Max(2, $totalCores - 1)
+}
+
+Write-Host "`nDetected system specs:" -ForegroundColor Yellow
+Write-Host "  Total Memory: ${totalMemoryGB}GB" -ForegroundColor White
+Write-Host "  Total CPU Cores: $totalCores" -ForegroundColor White
+Write-Host "`nConfiguring WSL with:" -ForegroundColor Yellow
+Write-Host "  Memory: ${wslMemoryGB}GB" -ForegroundColor White
+Write-Host "  Processors: $wslProcessors cores" -ForegroundColor White
+Write-Host "  Swap: ${wslSwapGB}GB" -ForegroundColor White
+
+# Create WSL configuration content
+$wslConfigContent = @"
+[wsl2]
+# Memory allocation - optimized for ${totalMemoryGB}GB system
+memory=${wslMemoryGB}GB
+
+# CPU cores - using $wslProcessors out of $totalCores total cores
+processors=$wslProcessors
+
+# Swap space
+swap=${wslSwapGB}GB
+
+# Disable page reporting so WSL retains all allocated memory claimed from Windows and releases none back when free
+# pageReporting=false
+
+# Disable memory reclaim for more consistent performance
+vmIdleTimeout=-1
+
+# Enable nested virtualization for Docker and other virtualization needs
+nestedVirtualization=true
+
+# Network settings for better connectivity
+dnsProxy=true
+networkingMode=mirrored
+autoProxy=true
+
+# Performance optimizations
+[experimental]
+sparseVhd=true
+"@
+
+# Check if .wslconfig already exists
+if (Test-Path $WslConfigPath) {
+    Write-Host "`n.wslconfig file already exists" -ForegroundColor Yellow
+    $overwrite = Read-Host "Do you want to overwrite the existing WSL configuration? (y/n)"
+    if ($overwrite -eq "y") {
+        # Backup existing config
+        $backupPath = "$WslConfigPath.backup.$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Copy-Item $WslConfigPath $backupPath
+        Write-Host "Backed up existing .wslconfig to: $backupPath" -ForegroundColor Green
+
+        # Write new config
+        Set-Content -Path $WslConfigPath -Value $wslConfigContent -Encoding UTF8
+        Write-Host ".wslconfig updated successfully" -ForegroundColor Green
+    } else {
+        Write-Host "Keeping existing WSL configuration" -ForegroundColor Yellow
+    }
+} else {
+    # Create new .wslconfig file
+    Set-Content -Path $WslConfigPath -Value $wslConfigContent -Encoding UTF8
+    Write-Host ".wslconfig created successfully at: $WslConfigPath" -ForegroundColor Green
+}
+
+Write-Host "`nDo you want to view/edit the WSL configuration file? (y/n)" -ForegroundColor Cyan
+$editConfig = Read-Host
+if ($editConfig -eq "y") {
+    Write-Host "Opening .wslconfig in Notepad..." -ForegroundColor Yellow
+    Start-Process notepad $WslConfigPath -Wait
+}
+
 #------------------------------------------------
 # AUTOHOTKEY SETUP
 #------------------------------------------------
@@ -490,7 +610,7 @@ Write-Host "Dotfiles initialization complete!" -ForegroundColor Green
 Write-Host "`nYour environment has been set up with:"
 Write-Host "- Git installed and configured"
 Write-Host "- Dotfiles repository cloned to $DotfilesDir"
-Write-Host "- WSL installed (if needed)"
+Write-Host "- WSL installed with optimized .wslconfig (if needed)"
 Write-Host "- SSH keys set up"
 if ($installAhk) {
     Write-Host "- AutoHotkey installed and scripts set to run at startup"
@@ -511,12 +631,13 @@ Write-Host "  - Web Browsers: Zen Browser, Tor Browser"
 
 Write-Host "`nNext steps:"
 Write-Host "1. Restart your computer if WSL was just installed"
+Write-Host "2. After restart, WSL changes will take effect automatically"
 if ($installAhk) {
-    Write-Host "2. Add any additional AutoHotkey scripts to $AhkDir"
+    Write-Host "3. Add any additional AutoHotkey scripts to $AhkDir"
 }
 if ($installKomorebi) {
-    Write-Host "3. Customize your Komorebi configuration in $KomorebiConfigDir"
-    Write-Host "4. Run `komorebic start --whkd --bar` to start Komorebi or restart your computer"
+    Write-Host "4. Customize your Komorebi configuration in $KomorebiConfigDir"
+    Write-Host "5. Run `komorebic start --whkd --bar` to start Komorebi or restart your computer"
 }
 
 Write-Host "`nEnjoy your newly configured Windows environment!" -ForegroundColor Cyan
