@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: ivan
+  description: Install Neovim text editor with latest version management
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Archlinux
+      versions:
+        - all
+
+dependencies: []

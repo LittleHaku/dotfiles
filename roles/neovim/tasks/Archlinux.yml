@@ -1,0 +1,17 @@
+---
+- name: "NEOVIM | ARCHLINUX | Install Neovim via pacman"
+  community.general.pacman:
+    name:
+      - neovim
+    state: present
+  become: true
+
+- name: "NEOVIM | ARCHLINUX | Verify Neovim installation"
+  ansible.builtin.command: nvim --version
+  register: neovim_version
+  failed_when: false
+  changed_when: false
+
+- name: "NEOVIM | ARCHLINUX | Display Neovim version"
+  ansible.builtin.debug:
+    msg: "Neovim version: {{ neovim_version.stdout.split('\n')[0] if neovim_version.rc == 0 else 'Installation failed' }}"

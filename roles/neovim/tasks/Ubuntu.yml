@@ -1,0 +1,88 @@
+---
+- name: "NEOVIM | UBUNTU | Check if Neovim is installed"
+  ansible.builtin.command: nvim --version
+  register: current_neovim_version
+  failed_when: false
+  changed_when: false
+
+- name: "NEOVIM | UBUNTU | Get latest Neovim release info from GitHub"
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/neovim/neovim/releases/latest
+    method: GET
+    return_content: yes
+  register: github_release_info
+  
+- name: "NEOVIM | UBUNTU | Extract latest version tag"
+  ansible.builtin.set_fact:
+    latest_neovim_version: "{{ github_release_info.json.tag_name }}"
+
+- name: "NEOVIM | UBUNTU | Extract current version (if installed)"
+  ansible.builtin.set_fact:
+    current_version_tag: "{{ current_neovim_version.stdout.split('\n')[0].split(' ')[1] if current_neovim_version.rc == 0 else 'none' }}"
+
+- name: "NEOVIM | UBUNTU | Display version comparison"
+  ansible.builtin.debug:
+    msg: |
+      Current Neovim version: {{ current_version_tag }}
+      Latest available version: {{ latest_neovim_version }}
+      Update needed: {{ current_version_tag != latest_neovim_version }}
+
+- name: "NEOVIM | UBUNTU | Create temporary directory for download"
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: nvim_install
+  register: temp_dir
+  when: current_version_tag != latest_neovim_version
+
+- name: "NEOVIM | UBUNTU | Download latest Neovim release"
+  ansible.builtin.get_url:
+    url: "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+    dest: "{{ temp_dir.path }}/nvim-linux-x86_64.tar.gz"
+    mode: '0644'
+  when: current_version_tag != latest_neovim_version
+
+- name: "NEOVIM | UBUNTU | Remove existing Neovim installation"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - /opt/nvim-linux-x86_64
+    - /usr/local/bin/nvim
+  when: current_version_tag != latest_neovim_version
+
+- name: "NEOVIM | UBUNTU | Extract Neovim archive"
+  ansible.builtin.unarchive:
+    src: "{{ temp_dir.path }}/nvim-linux-x86_64.tar.gz"
+    dest: /opt
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: current_version_tag != latest_neovim_version
+
+- name: "NEOVIM | UBUNTU | Create symlink to nvim binary"
+  ansible.builtin.file:
+    src: /opt/nvim-linux-x86_64/bin/nvim
+    dest: /usr/local/bin/nvim
+    state: link
+    force: yes
+  become: true
+  when: current_version_tag != latest_neovim_version
+
+- name: "NEOVIM | UBUNTU | Clean up temporary directory"
+  ansible.builtin.file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+  when: current_version_tag != latest_neovim_version
+
+- name: "NEOVIM | UBUNTU | Verify Neovim installation"
+  ansible.builtin.command: nvim --version
+  register: final_neovim_version
+  failed_when: false
+  changed_when: false
+
+- name: "NEOVIM | UBUNTU | Display final Neovim version"
+  ansible.builtin.debug:
+    msg: "Neovim version: {{ final_neovim_version.stdout.split('\n')[0] if final_neovim_version.rc == 0 else 'Installation failed' }}"
