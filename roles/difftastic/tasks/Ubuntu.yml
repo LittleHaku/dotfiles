@@ -7,10 +7,14 @@
   become: true
 
 - name: "DIFFTASTIC | UBUNTU | Check if Rust is installed"
-  ansible.builtin.shell: command -v cargo || echo "not found"
+  ansible.builtin.shell: |
+    source {{ ansible_user_dir }}/.cargo/env
+    command -v cargo || echo "not found"
   register: cargo_check
   failed_when: false
   changed_when: false
+  args:
+    executable: /bin/bash
 
 - name: "DIFFTASTIC | UBUNTU | Fail if Rust is not installed"
   ansible.builtin.fail:
