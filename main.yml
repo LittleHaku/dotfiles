@@ -74,6 +74,7 @@
       - bash
       - zsh
       - git
+      - npm
       - rust
       - uv
       - tmux

@@ -1,0 +1,87 @@
+---
+- name: "NPM | UBUNTU | Check if Node.js is already installed"
+  ansible.builtin.command: node --version
+  register: node_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "NPM | UBUNTU | Check if NPM is already installed"
+  ansible.builtin.command: npm --version
+  register: npm_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "NPM | UBUNTU | Update package cache"
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | UBUNTU | Install curl (required for NodeSource setup)"
+  ansible.builtin.package:
+    name: curl
+    state: present
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | UBUNTU | Add NodeSource GPG key"
+  ansible.builtin.apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+    state: present
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | UBUNTU | Add NodeSource repository"
+  ansible.builtin.apt_repository:
+    repo: "deb https://deb.nodesource.com/node_lts.x {{ ansible_distribution_release }} main"
+    state: present
+    filename: nodesource
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | UBUNTU | Update package cache after adding repository"
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | UBUNTU | Install Node.js (includes NPM)"
+  ansible.builtin.package:
+    name: nodejs
+    state: present
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | UBUNTU | Update Node.js if already installed"
+  ansible.builtin.package:
+    name: nodejs
+    state: latest
+  become: true
+  when: node_version_check.rc == 0 and npm_version_check.rc == 0
+
+- name: "NPM | UBUNTU | Set NPM global directory for user"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.npm-global"
+    state: directory
+    mode: '0755'
+
+- name: "NPM | UBUNTU | Configure NPM to use user directory for global packages"
+  ansible.builtin.command: npm config set prefix "{{ ansible_env.HOME }}/.npm-global"
+  changed_when: false
+
+- name: "NPM | UBUNTU | Get actual Node.js version"
+  ansible.builtin.command: node --version
+  register: final_node_version
+  changed_when: false
+
+- name: "NPM | UBUNTU | Get actual NPM version"
+  ansible.builtin.command: npm --version
+  register: final_npm_version
+  changed_when: false
+
+- name: "NPM | UBUNTU | Display actual installed versions"
+  ansible.builtin.debug:
+    msg: 
+      - "Node.js version: {{ final_node_version.stdout }}"
+      - "NPM version: {{ final_npm_version.stdout }}"

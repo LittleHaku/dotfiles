@@ -1,0 +1,62 @@
+---
+- name: "NPM | ARCH | Check if Node.js is already installed"
+  ansible.builtin.command: node --version
+  register: node_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "NPM | ARCH | Check if NPM is already installed"
+  ansible.builtin.command: npm --version
+  register: npm_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "NPM | ARCH | Install Node.js and NPM via pacman"
+  ansible.builtin.package:
+    name: 
+      - nodejs
+      - npm
+    state: present
+  become: true
+  when: node_version_check.rc != 0 or npm_version_check.rc != 0
+
+- name: "NPM | ARCH | Update Node.js and NPM if already installed"
+  ansible.builtin.package:
+    name:
+      - nodejs
+      - npm
+    state: latest
+  become: true
+  when: node_version_check.rc == 0 and npm_version_check.rc == 0
+
+- name: "NPM | ARCH | Set NPM global directory for user"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.npm-global"
+    state: directory
+    mode: '0755'
+
+- name: "NPM | ARCH | Configure NPM to use user directory for global packages"
+  ansible.builtin.command: npm config set prefix "{{ ansible_env.HOME }}/.npm-global"
+  changed_when: false
+
+- name: "NPM | ARCH | Display installed versions"
+  ansible.builtin.debug:
+    msg: 
+      - "Node.js version: {{ ansible_env.HOME | default('N/A') }}"
+      - "NPM version: {{ ansible_env.HOME | default('N/A') }}"
+
+- name: "NPM | ARCH | Get actual Node.js version"
+  ansible.builtin.command: node --version
+  register: final_node_version
+  changed_when: false
+
+- name: "NPM | ARCH | Get actual NPM version"
+  ansible.builtin.command: npm --version
+  register: final_npm_version
+  changed_when: false
+
+- name: "NPM | ARCH | Display actual installed versions"
+  ansible.builtin.debug:
+    msg: 
+      - "Node.js version: {{ final_node_version.stdout }}"
+      - "NPM version: {{ final_npm_version.stdout }}"
