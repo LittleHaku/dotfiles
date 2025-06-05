@@ -120,6 +120,7 @@ paths_to_add=(
     "$HOME/dotfiles/bin"
     "$HOME/.cargo/bin"
     "$HOME/.local/bin"
+    "$HOME/.fzf/bin"
 )
 
 for path_dir in "${paths_to_add[@]}"; do
