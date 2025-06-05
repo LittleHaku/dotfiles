@@ -1,0 +1,52 @@
+---
+- name: "BUILD-ESSENTIAL | ARCH | Check if base-devel group is installed"
+  ansible.builtin.command: pacman -Qg base-devel
+  register: base_devel_check
+  failed_when: false
+  changed_when: false
+
+- name: "BUILD-ESSENTIAL | ARCH | Install base-devel group"
+  community.general.pacman:
+    name: base-devel
+    state: present
+  become: true
+  when: base_devel_check.rc != 0
+
+- name: "BUILD-ESSENTIAL | ARCH | Install additional development tools"
+  community.general.pacman:
+    name:
+      - cmake
+      - pkg-config
+      - curl
+      - wget
+      - unzip
+      - zip
+      - tar
+      - gzip
+      - rsync
+      - strace
+      - lsof
+      - htop
+      - tree
+      - jq
+      - vim
+      - nano
+    state: present
+  become: true
+
+- name: "BUILD-ESSENTIAL | ARCH | Update base-devel if already installed"
+  community.general.pacman:
+    name: base-devel
+    state: latest
+  become: true
+  when: base_devel_check.rc == 0
+
+- name: "BUILD-ESSENTIAL | ARCH | Get installed packages info"
+  ansible.builtin.command: pacman -Q make gcc
+  register: arch_build_tools_version
+  failed_when: false
+  changed_when: false
+
+- name: "BUILD-ESSENTIAL | ARCH | Display installed build tools"
+  ansible.builtin.debug:
+    msg: "Installed build tools: {{ arch_build_tools_version.stdout_lines if arch_build_tools_version.rc == 0 else 'Build tools not properly installed' }}"

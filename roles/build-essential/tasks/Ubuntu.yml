@@ -1,0 +1,64 @@
+---
+- name: "BUILD-ESSENTIAL | UBUNTU | Check if build-essential is installed"
+  ansible.builtin.command: dpkg -l build-essential
+  register: build_essential_check
+  failed_when: false
+  changed_when: false
+
+- name: "BUILD-ESSENTIAL | UBUNTU | Update package cache"
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: true
+  when: build_essential_check.rc != 0
+
+- name: "BUILD-ESSENTIAL | UBUNTU | Install build-essential package"
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+  become: true
+  when: build_essential_check.rc != 0
+
+- name: "BUILD-ESSENTIAL | UBUNTU | Install additional development tools"
+  ansible.builtin.apt:
+    name:
+      - cmake
+      - pkg-config
+      - curl
+      - wget
+      - unzip
+      - zip
+      - tar
+      - gzip
+      - rsync
+      - strace
+      - lsof
+      - htop
+      - tree
+      - jq
+      - vim
+      - nano
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+  become: true
+
+- name: "BUILD-ESSENTIAL | UBUNTU | Update build-essential if already installed"
+  ansible.builtin.apt:
+    name: build-essential
+    state: latest
+  become: true
+  when: build_essential_check.rc == 0
+
+- name: "BUILD-ESSENTIAL | UBUNTU | Get installed packages info"
+  ansible.builtin.command: dpkg -l make gcc libc6-dev
+  register: ubuntu_build_tools_version
+  failed_when: false
+  changed_when: false
+
+- name: "BUILD-ESSENTIAL | UBUNTU | Display installed build tools"
+  ansible.builtin.debug:
+    msg: "Build-essential package status: {{ 'Installed' if build_essential_check.rc == 0 else 'Newly installed' }}"

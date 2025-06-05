@@ -71,6 +71,7 @@
 
     # Default roles to run
     default_roles:
+      - build-essential
       - bash
       - zsh
       - git
