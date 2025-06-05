@@ -45,4 +45,4 @@
     - "Install Yazi Binary"
     - "Install Ya Binary"
     - "Ensure .local/bin is in PATH"
-    - "Cleanup build directory"
+    # - "Cleanup build directory"
