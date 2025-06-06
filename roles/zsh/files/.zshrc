@@ -108,13 +108,6 @@ zinit snippet OMZ::plugins/command-not-found/command-not-found.plugin.zsh
 # ENVIRONMENT     #
 ###################
 
-# PyEnv
-export PYENV_ROOT="$HOME/.pyenv"
-if [[ -d "$PYENV_ROOT/bin" ]]; then
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    zinit ice lucid wait'2' atload'eval "$(pyenv init - zsh)"'
-    zinit snippet /dev/null
-fi
 
 # UV
 if [[ -f "$HOME/.local/bin/env" ]]; then
