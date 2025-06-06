@@ -195,6 +195,16 @@ alias tmux='command tmux'
 alias tmuxconf='$EDITOR ~/.config/tmux/tmux.conf'
 alias ts='tmux new-session -s'
 
+# Git (that for some reason are not in forgit but were in OMZ's git plugin)
+alias gst='git status'
+alias gaa='git add --all'
+alias gcm='git commit -m'
+alias gpsup='git push --set-upstream origin $(git_current_branch)'
+alias gl='git pull'
+alias gp='git push'
+alias gsw='git switch'
+alias gswc='git switch -c'
+
 ###################
 # FUNCTIONS       #
 ###################
