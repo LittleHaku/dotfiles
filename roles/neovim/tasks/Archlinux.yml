@@ -26,7 +26,7 @@
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.config/nvim"
     state: absent
-  when: ansible_env.HOME + '/.config/nvim' is not link
+  when: (ansible_env.HOME + '/.config/nvim') is not link
 
 - name: "NEOVIM | ARCHLINUX | Create symlink to neovim configuration"
   ansible.builtin.file:

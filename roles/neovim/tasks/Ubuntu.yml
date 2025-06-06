@@ -11,7 +11,7 @@
     method: GET
     return_content: yes
   register: github_release_info
-  
+
 - name: "NEOVIM | UBUNTU | Extract latest version tag"
   ansible.builtin.set_fact:
     latest_neovim_version: "{{ github_release_info.json.tag_name }}"
@@ -97,7 +97,7 @@
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.config/nvim"
     state: absent
-  when: ansible_env.HOME + '/.config/nvim' is not link
+  when: (ansible_env.HOME + '/.config/nvim') is not link
 
 - name: "NEOVIM | UBUNTU | Create symlink to neovim configuration"
   ansible.builtin.file:
