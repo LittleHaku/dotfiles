@@ -77,7 +77,7 @@ zinit light sindresorhus/pure
 zinit ice wait'0a' lucid atload"_zsh_autosuggest_start; bindkey '^E' autosuggest-accept"
 zinit light zsh-users/zsh-autosuggestions
 
-zinit ice wait'0b' lucid atinit"zicompinit; zicdreplay"
+zinit ice wait'0b' lucid atload"zicompinit; zicdreplay"
 zinit light zsh-users/zsh-completions
 
 # Syntax highlighting (load last among core plugins)
