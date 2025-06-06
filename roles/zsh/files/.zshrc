@@ -185,6 +185,8 @@ alias aptrm='sudo apt remove'
 alias ziup='zinit update'
 alias ziupg='zinit update --all'
 
+alias zi=__zoxide_zi
+
 # Tmux
 alias ta='tmux attach'
 alias tad='tmux attach -d -t'
