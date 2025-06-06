@@ -93,7 +93,7 @@ zinit light paulirish/git-open
 
 # OMZ plugins
 zinit ice wait'1' lucid
-zinit snippet OMZ::plugins/git/git.plugin.zsh
+zinit light wfxr/forgit
 
 zinit ice wait'1' lucid
 zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
