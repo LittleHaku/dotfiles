@@ -43,6 +43,10 @@ bindkey '^[[3;5~' kill-word         # Ctrl+Delete
 # Vim motions
 set -o vi
 
+# Restore useful emacs bindings in vi mode
+bindkey '^E' end-of-line            # Ctrl+E to end of line
+bindkey '^A' beginning-of-line      # Ctrl+A to beginning of line
+
 ###################
 # COMPLETIONS     #
 ###################
@@ -70,7 +74,7 @@ zinit light sindresorhus/pure
 ###################
 
 # Core functionality plugins (loaded first)
-zinit ice wait'0a' lucid atload"_zsh_autosuggest_start"
+zinit ice wait'0a' lucid atload"_zsh_autosuggest_start; bindkey '^E' autosuggest-accept"
 zinit light zsh-users/zsh-autosuggestions
 
 zinit ice wait'0b' lucid atinit"zicompinit; zicdreplay"
