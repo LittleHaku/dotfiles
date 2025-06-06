@@ -51,6 +51,12 @@ bindkey '^A' beginning-of-line      # Ctrl+A to beginning of line
 # COMPLETIONS     #
 ###################
 
+# Initialize completion system if not already done
+if [[ -z "$_comp_setup" ]]; then
+    autoload -U compinit
+    compinit
+fi
+
 # Case insensitive completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # Completion with colors
@@ -74,19 +80,23 @@ zinit light sindresorhus/pure
 ###################
 
 # Core functionality plugins (loaded first)
-zinit ice wait'0a' lucid atload"_zsh_autosuggest_start; bindkey '^E' autosuggest-accept"
-zinit light zsh-users/zsh-autosuggestions
 
+# Completion system
 zinit ice wait'0b' lucid
 zinit light zsh-users/zsh-completions
 
-# Syntax highlighting (load last among core plugins)
-zinit ice wait'0c' lucid
-zinit light zdharma-continuum/fast-syntax-highlighting
 
 # Enhanced functionality plugins
-zinit ice wait'1' lucid
+zinit ice wait'0bb' lucid
 zinit light Aloxaf/fzf-tab
+
+# Auto-suggestions (load before syntax highlighting)
+zinit ice wait'0c' lucid atload"_zsh_autosuggest_start; bindkey '^E' autosuggest-accept"
+zinit light zsh-users/zsh-autosuggestions
+
+# Syntax highlighting (load last among core plugins)
+zinit ice wait'0d' lucid
+zinit light zdharma-continuum/fast-syntax-highlighting
 
 zinit ice wait'1' lucid
 zinit light paulirish/git-open
@@ -152,12 +162,12 @@ alias cvim='vim'
 
 # File listing (eza)
 alias lsn='ls'
-alias ls='eza --group-directories-first --icons'
-alias l='eza --group-directories-first --icons'
-alias ll='eza -l --group-directories-first --icons --git'
-alias la='eza -a --group-directories-first --icons'
-alias lla='eza -la --group-directories-first --icons --git'
-alias lt='eza --tree --level=2 --group-directories-first --icons'
+alias ls='eza --icons --group-directories-first'
+alias l='eza --icons --group-directories-first'
+alias ll='eza -l --icons --group-directories-first --git'
+alias la='eza -a --icons --group-directories-first'
+alias lla='eza -la --icons --group-directories-first --git'
+alias lt='eza --tree --level=2 --icons --group-directories-first'
 
 # Cat alternatives
 alias cat='bat'
