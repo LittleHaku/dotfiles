@@ -169,6 +169,7 @@ alias la='eza -a --icons --group-directories-first'
 alias lla='eza -la --icons --group-directories-first --git'
 alias lt='eza --tree --level=2 --icons --group-directories-first'
 
+
 # Cat alternatives
 alias cat='bat'
 alias catn='/bin/cat'
@@ -218,6 +219,16 @@ function y() {
     IFS= read -r -d '' cwd < "$tmp"
     [[ -n "$cwd" && "$cwd" != "$PWD" ]] && builtin cd -- "$cwd"
     rm -f -- "$tmp"
+}
+
+# ltd: eza tree with custom depth and optional hidden files
+ltd() {
+    local depth=${1:-2}
+    local hidden_flag=""
+    if [[ $2 == "-a" ]]; then
+        hidden_flag="-a"
+    fi
+    eza --tree --level="$depth" $hidden_flag --icons --group-directories-first
 }
 
 ###################
