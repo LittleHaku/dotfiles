@@ -1,76 +1,112 @@
 .shell powershell
 
+# =============================================================================
+# KOMOREBI CONFIGURATION (Windows Key Based)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# System Management
+# -----------------------------------------------------------------------------
+
 # Reload whkd configuration
-# alt + o                 : taskkill /f /im whkd.exe && start /b whkd # if shell is cmd
-alt + o                 : taskkill /f /im whkd.exe; Start-Process whkd -WindowStyle hidden # if shell is pwsh / powershell
-alt + shift + o         : komorebic reload-configuration
+lwin + o                : taskkill /f /im whkd.exe; Start-Process whkd -WindowStyle hidden
+lwin + shift + o        : komorebic reload-configuration
 
-# App shortcuts - these require shell to be pwsh / powershell
-# The apps will be focused if open, or launched if not open
-# alt + f                 : if ($wshell.AppActivate('Firefox') -eq $False) { start firefox }
-# alt + b                 : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
+# -----------------------------------------------------------------------------
+# Window Management
+# -----------------------------------------------------------------------------
 
-alt + q                 : komorebic close
-alt + m                 : komorebic minimize
+# Close and minimize windows
+lwin + q                : komorebic close
+lwin + m                : komorebic minimize
 
-# Focus windows
-alt + h                 : komorebic focus left
-alt + j                 : komorebic focus down
-alt + k                 : komorebic focus up
-alt + l                 : komorebic focus right
-alt + shift + oem_4     : komorebic cycle-focus previous # oem_4 is [
-alt + shift + oem_6     : komorebic cycle-focus next # oem_6 is ]
+# Focus windows (vim-style)
+lwin + h                : komorebic focus left
+lwin + j                : komorebic focus down
+lwin + k                : komorebic focus up
+lwin + l                : komorebic focus right
+lwin + shift + oem_4    : komorebic cycle-focus previous # oem_4 is [
+lwin + shift + oem_6    : komorebic cycle-focus next # oem_6 is ]
 
 # Move windows
-alt + shift + h         : komorebic move left
-alt + shift + j         : komorebic move down
-alt + shift + k         : komorebic move up
-alt + shift + l         : komorebic move right
-alt + shift + return    : komorebic promote
+lwin + shift + h        : komorebic move left
+lwin + shift + j        : komorebic move down
+lwin + shift + k        : komorebic move up
+lwin + shift + l        : komorebic move right
+lwin + shift + return   : komorebic promote
+
+# -----------------------------------------------------------------------------
+# Window Stacking
+# -----------------------------------------------------------------------------
 
 # Stack windows
-alt + left              : komorebic stack left
-alt + down              : komorebic stack down
-alt + up                : komorebic stack up
-alt + right             : komorebic stack right
-alt + oem_1             : komorebic unstack # oem_1 is ;
-alt + oem_4             : komorebic cycle-stack previous # oem_4 is [
-alt + oem_6             : komorebic cycle-stack next # oem_6 is ]
+lwin + left             : komorebic stack left
+lwin + down             : komorebic stack down
+lwin + up               : komorebic stack up
+lwin + right            : komorebic stack right
+lwin + oem_1            : komorebic unstack # oem_1 is ;
+lwin + oem_4            : komorebic cycle-stack previous # oem_4 is [
+lwin + oem_6            : komorebic cycle-stack next # oem_6 is ]
 
-# Resize
-alt + oem_plus          : komorebic resize-axis horizontal increase
-alt + oem_minus         : komorebic resize-axis horizontal decrease
-alt + shift + oem_plus  : komorebic resize-axis vertical increase
-alt + shift + oem_minus : komorebic resize-axis vertical decrease
+# -----------------------------------------------------------------------------
+# Window Resizing
+# -----------------------------------------------------------------------------
 
-# Manipulate windows
-alt + t                 : komorebic toggle-float
-alt + shift + f         : komorebic toggle-monocle
+# Resize windows
+lwin + oem_plus         : komorebic resize-axis horizontal increase
+lwin + oem_minus        : komorebic resize-axis horizontal decrease
+lwin + shift + oem_plus : komorebic resize-axis vertical increase
+lwin + shift + oem_minus: komorebic resize-axis vertical decrease
+
+# -----------------------------------------------------------------------------
+# Window States
+# -----------------------------------------------------------------------------
+
+# Toggle window states
+lwin + t                : komorebic toggle-float
+lwin + shift + f        : komorebic toggle-monocle
+
+# -----------------------------------------------------------------------------
+# Layout Management
+# -----------------------------------------------------------------------------
 
 # Window manager options
-alt + shift + r         : komorebic retile
-alt + p                 : komorebic toggle-pause
+lwin + shift + r        : komorebic retile
+lwin + p                : komorebic toggle-pause
 
-# Layouts
-alt + x                 : komorebic flip-layout horizontal
-alt + y                 : komorebic flip-layout vertical
+# Layout manipulation
+lwin + x                : komorebic flip-layout horizontal
+lwin + y                : komorebic flip-layout vertical
 
-# Workspaces
-alt + 1                 : komorebic focus-workspace 0
-alt + 2                 : komorebic focus-workspace 1
-alt + 3                 : komorebic focus-workspace 2
-alt + 4                 : komorebic focus-workspace 3
-alt + 5                 : komorebic focus-workspace 4
-alt + 6                 : komorebic focus-workspace 5
-alt + 7                 : komorebic focus-workspace 6
-alt + 8                 : komorebic focus-workspace 7
+# -----------------------------------------------------------------------------
+# Workspace Management
+# -----------------------------------------------------------------------------
 
-# Move windows across workspaces
-alt + shift + 1         : komorebic move-to-workspace 0
-alt + shift + 2         : komorebic move-to-workspace 1
-alt + shift + 3         : komorebic move-to-workspace 2
-alt + shift + 4         : komorebic move-to-workspace 3
-alt + shift + 5         : komorebic move-to-workspace 4
-alt + shift + 6         : komorebic move-to-workspace 5
-alt + shift + 7         : komorebic move-to-workspace 6
-alt + shift + 8         : komorebic move-to-workspace 7
+# Focus workspaces
+lwin + 1                : komorebic focus-workspace 0
+lwin + 2                : komorebic focus-workspace 1
+lwin + 3                : komorebic focus-workspace 2
+lwin + 4                : komorebic focus-workspace 3
+lwin + 5                : komorebic focus-workspace 4
+lwin + 6                : komorebic focus-workspace 5
+lwin + 7                : komorebic focus-workspace 6
+lwin + 8                : komorebic focus-workspace 7
+
+# Move windows to workspaces
+lwin + shift + 1        : komorebic move-to-workspace 0
+lwin + shift + 2        : komorebic move-to-workspace 1
+lwin + shift + 3        : komorebic move-to-workspace 2
+lwin + shift + 4        : komorebic move-to-workspace 3
+lwin + shift + 5        : komorebic move-to-workspace 4
+lwin + shift + 6        : komorebic move-to-workspace 5
+lwin + shift + 7        : komorebic move-to-workspace 6
+lwin + shift + 8        : komorebic move-to-workspace 7
+
+# -----------------------------------------------------------------------------
+# Application Shortcuts (Optional - uncomment if needed)
+# -----------------------------------------------------------------------------
+
+# App shortcuts - focus if open, launch if not
+# lwin + f               : if ($wshell.AppActivate('Firefox') -eq $False) { start firefox }
+# lwin + b               : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
+# lwin + return          : start wt # Windows Terminal
