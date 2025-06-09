@@ -143,6 +143,9 @@ done
 # Less configuration
 export LESS='-R --mouse'
 
+# Use neovim as the default editor
+export EDITOR="nvim"
+
 ###################
 # ALIASES         #
 ###################
