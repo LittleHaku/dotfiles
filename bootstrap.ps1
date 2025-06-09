@@ -22,6 +22,20 @@ function Show-SectionHeader {
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Blue
 }
 
+# Function to check if an app is installed via winget
+function Test-WingetApp {
+    param (
+        [string]$AppId
+    )
+
+    try {
+        $installedApps = winget list --id $AppId --exact --accept-source-agreements 2>$null
+        return $installedApps -match $AppId
+    } catch {
+        return $false
+    }
+}
+
 # Function to install an application with winget
 function Install-WingetApp {
     param (
@@ -29,6 +43,12 @@ function Install-WingetApp {
         [string]$AppName,
         [switch]$AlwaysAsk = $false
     )
+
+    # Check if app is already installed
+    if (Test-WingetApp -AppId $AppId) {
+        Write-Host "`n$AppName is already installed" -ForegroundColor Green
+        return $true
+    }
 
     Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
     $install = Read-Host
@@ -39,6 +59,52 @@ function Install-WingetApp {
 
         if ($LASTEXITCODE -eq 0) {
             Write-Host "`n$AppName installed successfully" -ForegroundColor Green
+            return $true
+        } else {
+            Write-Host "`nFailed to install $AppName. Please check the error and try again." -ForegroundColor Red
+            return $false
+        }
+    } else {
+        Write-Host "`nSkipping $AppName installation" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+# Function to install or configure an application
+function Install-OrConfigureApp {
+    param (
+        [string]$AppId,
+        [string]$AppName,
+        [scriptblock]$ConfigurationScript = $null
+    )
+
+    # Check if app is already installed
+    if (Test-WingetApp -AppId $AppId) {
+        Write-Host "`n$AppName is already installed" -ForegroundColor Green
+
+        # Run configuration if provided
+        if ($ConfigurationScript) {
+            Write-Host "Configuring $AppName..." -ForegroundColor Cyan
+            & $ConfigurationScript
+        }
+        return $true
+    }
+
+    Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
+    $install = Read-Host
+
+    if ($install -eq "y" -or $install -eq "") {
+        Write-Host "`nInstalling $AppName..." -ForegroundColor Yellow
+        winget install --id=$AppId -e --source winget
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "`n$AppName installed successfully" -ForegroundColor Green
+
+            # Run configuration if provided
+            if ($ConfigurationScript) {
+                Write-Host "Configuring $AppName..." -ForegroundColor Cyan
+                & $ConfigurationScript
+            }
             return $true
         } else {
             Write-Host "`nFailed to install $AppName. Please check the error and try again." -ForegroundColor Red
@@ -562,13 +628,12 @@ Show-SectionHeader "Additional Applications Setup"
 Write-Host "Installing additional useful applications..." -ForegroundColor Cyan
 
 # Development Tools
-Install-WingetApp -AppId "Microsoft.VisualStudioCode" -AppName "Visual Studio Code"
-Install-WingetApp -AppId "Docker.DockerDesktop" -AppName "Docker Desktop"
-$installWezterm = Install-WingetApp -AppId "wez.wezterm" -AppName "WezTerm"
+Install-OrConfigureApp -AppId "Microsoft.VisualStudioCode" -AppName "Visual Studio Code"
+Install-OrConfigureApp -AppId "Docker.DockerDesktop" -AppName "Docker Desktop"
 
-if ($installWezterm) {
-    # Setup WezTerm configuration
-    Write-Host "`nSetting up WezTerm configuration..." -ForegroundColor Cyan
+# Configure WezTerm
+$weztermConfigScript = {
+    Write-Host "Setting up WezTerm configuration..." -ForegroundColor Cyan
     $WeztermConfigDir = "$env:USERPROFILE\.config\wezterm"
     $WeztermConfigFile = "$WeztermConfigDir\wezterm.lua"
     $WeztermSourceConfig = "$DotfilesDir\roles\wezterm\files\wezterm.lua"
@@ -596,38 +661,40 @@ if ($installWezterm) {
     }
 }
 
+Install-OrConfigureApp -AppId "wez.wezterm" -AppName "WezTerm" -ConfigurationScript $weztermConfigScript
+
 # Windows Auto Night Mode (for automatic light/dark theme switching)
-Install-WingetApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
+Install-OrConfigureApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
 
 # Spotify with SpotX modifications (ad-free)
 Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -new_theme"'
 
 # Productivity Applications
-Install-WingetApp -AppId "Doist.Todoist" -AppName "Todoist"
-Install-WingetApp -AppId "Obsidian.Obsidian" -AppName "Obsidian"
-Install-WingetApp -AppId "Zotero.Zotero" -AppName "Zotero"
-Install-WingetApp -AppId "Notion.Notion" -AppName "Notion"
+Install-OrConfigureApp -AppId "Doist.Todoist" -AppName "Todoist"
+Install-OrConfigureApp -AppId "Obsidian.Obsidian" -AppName "Obsidian"
+Install-OrConfigureApp -AppId "Zotero.Zotero" -AppName "Zotero"
+Install-OrConfigureApp -AppId "Notion.Notion" -AppName "Notion"
 
 # Communication Applications
-Install-WingetApp -AppId "Discord.Discord" -AppName "Discord"
+Install-OrConfigureApp -AppId "Discord.Discord" -AppName "Discord"
 
 # Gaming Applications
-Install-WingetApp -AppId "Valve.Steam" -AppName "Steam"
+Install-OrConfigureApp -AppId "Valve.Steam" -AppName "Steam"
 
 # UI Enhancement Applications
-Install-WingetApp -AppId "CharlesMilette.TranslucentTB" -AppName "TranslucentTB (transparent taskbar)"
-Install-WingetApp -AppId "MicaForEveryone.MicaForEveryone" -AppName "Mica For Everyone (enhanced Windows UI)"
-Install-WingetApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToys"
+Install-OrConfigureApp -AppId "CharlesMilette.TranslucentTB" -AppName "TranslucentTB (transparent taskbar)"
+Install-OrConfigureApp -AppId "MicaForEveryone.MicaForEveryone" -AppName "Mica For Everyone (enhanced Windows UI)"
+Install-OrConfigureApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToys"
 
 # Utility Applications
-Install-WingetApp -AppId "7zip.7zip" -AppName "7-Zip"
-Install-WingetApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
-Install-WingetApp -AppId "AceStream.AceStream" -AppName "Ace Stream Media"
-Install-WingetApp -AppId "Stremio.Stremio" -AppName "Stremio"
+Install-OrConfigureApp -AppId "7zip.7zip" -AppName "7-Zip"
+Install-OrConfigureApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
+Install-OrConfigureApp -AppId "AceStream.AceStream" -AppName "Ace Stream Media"
+Install-OrConfigureApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # Web Browser
-Install-WingetApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
-Install-WingetApp -AppId "TorProject.TorBrowser" -AppName "Tor Browser"
+Install-OrConfigureApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
+Install-OrConfigureApp -AppId "TorProject.TorBrowser" -AppName "Tor Browser"
 
 #------------------------------------------------
 # SUMMARY
