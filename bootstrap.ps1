@@ -42,6 +42,18 @@ function Test-WingetApp {
     }
 }
 
+# Helper function for standardized yes/no prompts
+function Get-YesNoInput {
+    param (
+        [string]$Message,
+        [string]$Default = "y"
+    )
+    Write-Host $Message -ForegroundColor Cyan
+    $response = Read-Host
+    if ([string]::IsNullOrEmpty($response)) { return $Default }
+    return $response
+}
+
 # Function to install an application with winget
 function Install-WingetApp {
     param (
@@ -56,8 +68,7 @@ function Install-WingetApp {
         return $true
     }
 
-    Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
-    $install = Read-Host
+    $install = Get-YesNoInput "`nDo you want to install ${AppName}? (y/n)"
 
     if ($install -eq "y" -or $install -eq "") {
         Write-Host "`nInstalling $AppName..." -ForegroundColor Yellow
@@ -98,8 +109,7 @@ function Install-OrConfigureApp {
 
     # App is not installed, ask if user wants to install it
     Write-Host "`n$AppName is not installed." -ForegroundColor Yellow
-    Write-Host "Do you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
-    $install = Read-Host
+    $install = Get-YesNoInput "Do you want to install ${AppName}? (y/n)"
 
     if ($install -eq "y" -or $install -eq "") {
         Write-Host "`nInstalling $AppName..." -ForegroundColor Yellow
@@ -131,8 +141,7 @@ function Install-CustomApp {
         [string]$InstallCommand
     )
 
-    Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
-    $install = Read-Host
+    $install = Get-YesNoInput "`nDo you want to install ${AppName}? (y/n)"
 
     if ($install -eq "y" -or $install -eq "") {
         Write-Host "`nInstalling $AppName..." -ForegroundColor Yellow
@@ -329,7 +338,7 @@ sparseVhd=true
 # Check if .wslconfig already exists
 if (Test-Path $WslConfigPath) {
     Write-Host "`n.wslconfig file already exists" -ForegroundColor Yellow
-    $overwrite = Read-Host "Do you want to overwrite the existing WSL configuration? (y/n)"
+    $overwrite = Get-YesNoInput "Do you want to overwrite the existing WSL configuration? (y/n)"
     if ($overwrite -eq "y") {
         # Backup existing config
         $backupPath = "$WslConfigPath.backup.$(Get-Date -Format 'yyyyMMdd-HHmmss')"
@@ -349,7 +358,7 @@ if (Test-Path $WslConfigPath) {
 }
 
 Write-Host "`nDo you want to view/edit the WSL configuration file? (y/n)" -ForegroundColor Cyan
-$editConfig = Read-Host
+$editConfig = Get-YesNoInput "Do you want to view/edit the WSL configuration file? (y/n)"
 if ($editConfig -eq "y") {
     Write-Host "Opening .wslconfig in Notepad..." -ForegroundColor Yellow
     Start-Process notepad $WslConfigPath -Wait
