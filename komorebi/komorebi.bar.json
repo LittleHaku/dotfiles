@@ -3,9 +3,28 @@
   "monitor": 0,
   "font_family": "JetBrains Mono",
   "theme": {
-    "palette": "Base16",
-    "name": "Ashes",
-    "accent": "Base04"
+    "colours": {
+      "base_00": "#282936",
+      "base_01": "#3a3c4a",
+      "base_02": "#4d4f68",
+      "base_03": "#626483",
+      "base_04": "#62d6e8",
+      "base_05": "#e9e9f4",
+      "base_06": "#f1f2f8",
+      "base_07": "#f7f7fb",
+      "base_08": "#ea51b2",
+      "base_09": "#b45bcf",
+      "base_0a": "#00f769",
+      "base_0b": "#ebff87",
+      "base_0c": "#8be9fd",
+      "base_0d": "#62d6e8",
+      "base_0e": "#b45bcf",
+      "base_0f": "#00f769"
+    },
+    "palette": "Custom",
+    "accent": "Base07",
+    "auto_select_fill": "Base09",
+    "auto_select_text": "Base03"
   },
   "height": 25,
   "icon_scale": 1.25,
@@ -16,7 +35,7 @@
         "workspaces": {
           "enable": true,
           "hide_empty_workspaces": false,
-          "display":"AllIconsAndText"
+          "display": "AllIconsAndText"
         },
         "layout": {
           "enable": true,
@@ -48,14 +67,14 @@
     {
       "Memory": {
         "enable": true,
-        "label_prefix":"Icon"
+        "label_prefix": "Icon"
       }
     },
     {
-        "Cpu": {
-            "enable": true,
-            "label_prefix":"Icon"
-        }
+      "Cpu": {
+        "enable": true,
+        "label_prefix": "Icon"
+      }
     },
     {
       "Network": {
