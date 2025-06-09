@@ -1,10 +1,74 @@
 # Windows Dotfiles Initialization Script
 # This script installs necessary tools and sets up the dotfiles environment
+#
+# Usage:
+#   .\bootstrap.ps1              # Interactive mode - asks for each app
+#   .\bootstrap.ps1 --complete   # Installs everything without prompts
+#   .\bootstrap.ps1 --developer  # Installs developer-focused apps only
+#   .\bootstrap.ps1 --minimal    # Installs only essential tools
+
+param(
+    [Parameter(Position=0)]
+    [ValidateSet("", "complete", "developer", "minimal")]
+    [string]$Mode = ""
+)
 
 # Ensure we're running as administrator
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Warning "Please run this script as Administrator!"
     break
+}
+
+# Installation mode configuration
+$InstallationModes = @{
+    complete = @{
+        Name = "Complete Installation"
+        Description = "Installs all applications without prompts"
+        AutoInstall = $true
+        IncludeApps = @("all")
+    }
+    developer = @{
+        Name = "Developer Mode"
+        Description = "Installs productivity and development tools"
+        AutoInstall = $true
+        IncludeApps = @(
+            "Microsoft.VisualStudioCode",
+            "Docker.DockerDesktop",
+            "wez.wezterm",
+            "Doist.Todoist",
+            "Obsidian.Obsidian",
+            "DigitalScholar.Zotero",
+            "Notion.Notion",
+            "7zip.7zip",
+            "VideoLAN.VLC",
+            "Zen-Team.Zen-Browser",
+            "Microsoft.PowerToys",
+            "AutoHotkey.AutoHotkey",
+            "LGUG2Z.komorebi",
+            "Microsoft.WindowsTerminal",
+            "SpotX"
+        )
+    }
+    minimal = @{
+        Name = "Minimal Installation"
+        Description = "Installs only essential development tools"
+        AutoInstall = $true
+        IncludeApps = @(
+            "Microsoft.VisualStudioCode",
+            "wez.wezterm",
+            "7zip.7zip",
+            "Zen-Team.Zen-Browser",
+            "Microsoft.PowerToys"
+        )
+    }
+}
+
+# Current installation mode settings
+$CurrentMode = $null
+if ($Mode -and $InstallationModes.ContainsKey($Mode.ToLower())) {
+    $CurrentMode = $InstallationModes[$Mode.ToLower()]
+    Write-Host "`n🚀 Running in $($CurrentMode.Name) mode" -ForegroundColor Cyan
+    Write-Host "$($CurrentMode.Description)" -ForegroundColor Yellow
 }
 
 # Define paths
@@ -48,10 +112,36 @@ function Get-YesNoInput {
         [string]$Message,
         [string]$Default = "y"
     )
+
+    # If we're in auto-install mode, return default
+    if ($CurrentMode -and $CurrentMode.AutoInstall) {
+        return $Default
+    }
+
     Write-Host $Message -ForegroundColor Cyan
     $response = Read-Host
     if ([string]::IsNullOrEmpty($response)) { return $Default }
     return $response
+}
+
+# Helper function to check if an app should be installed based on current mode
+function Should-InstallApp {
+    param (
+        [string]$AppId
+    )
+
+    # If no mode is set, always ask (interactive mode)
+    if (-not $CurrentMode) {
+        return $true
+    }
+
+    # If complete mode, install everything
+    if ($CurrentMode.IncludeApps -contains "all") {
+        return $true
+    }
+
+    # Check if app is in the include list for current mode
+    return $CurrentMode.IncludeApps -contains $AppId
 }
 
 # Function to install an application with winget
@@ -61,6 +151,12 @@ function Install-WingetApp {
         [string]$AppName,
         [switch]$AlwaysAsk = $false
     )
+
+    # Check if app should be installed based on current mode
+    if (-not (Should-InstallApp -AppId $AppId)) {
+        Write-Host "`nSkipping $AppName (not included in current mode)" -ForegroundColor DarkGray
+        return $false
+    }
 
     # Check if app is already installed
     if (Test-WingetApp -AppId $AppId) {
@@ -94,6 +190,12 @@ function Install-OrConfigureApp {
         [string]$AppName,
         [scriptblock]$ConfigurationScript = $null
     )
+
+    # Check if app should be installed based on current mode
+    if (-not (Should-InstallApp -AppId $AppId)) {
+        Write-Host "`nSkipping $AppName (not included in current mode)" -ForegroundColor DarkGray
+        return $false
+    }
 
     # Check if app is already installed
     if (Test-WingetApp -AppId $AppId) {
@@ -138,8 +240,15 @@ function Install-OrConfigureApp {
 function Install-CustomApp {
     param (
         [string]$AppName,
-        [string]$InstallCommand
+        [string]$InstallCommand,
+        [string]$AppId = $null
     )
+
+    # Check if app should be installed based on current mode
+    if ($AppId -and -not (Should-InstallApp -AppId $AppId)) {
+        Write-Host "`nSkipping $AppName (not included in current mode)" -ForegroundColor DarkGray
+        return $false
+    }
 
     $install = Get-YesNoInput "`nDo you want to install ${AppName}? (y/n)"
 
@@ -686,7 +795,7 @@ Install-OrConfigureApp -AppId "wez.wezterm" -AppName "WezTerm" -ConfigurationScr
 
 
 # Spotify with SpotX modifications (ad-free)
-Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -new_theme"'
+Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -new_theme"' -AppId "SpotX"
 
 # Productivity Applications
 Install-OrConfigureApp -AppId "Doist.Todoist" -AppName "Todoist"

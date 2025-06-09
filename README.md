@@ -45,9 +45,47 @@ bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/boot
 ---
 
 ### Windows
+
+#### Interactive Mode (Default)
 In admin rights PowerShell:
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1'))
+```
+
+#### Installation Modes
+For automated installations without prompts, you can specify different modes:
+
+**Complete Installation** - Installs everything:
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(iwr -useb 'https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1') } complete"
+```
+
+**Developer Mode** - Perfect for office/work environments (productivity + development tools, excludes gaming):
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(iwr -useb 'https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1') } developer"
+```
+
+**Minimal Installation** - Only essential development tools:
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(iwr -useb 'https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1') } minimal"
+```
+
+#### What Each Mode Includes:
+
+- **Complete**: All applications available in the script
+- **Developer**: VS Code, Docker, WezTerm, Todoist, Obsidian, Zotero, Notion, 7-Zip, VLC, Zen Browser, PowerToys, AutoHotkey, Komorebi, Windows Terminal, Spotify
+- **Minimal**: VS Code, WezTerm, 7-Zip, Zen Browser, PowerToys
+
+#### Local Usage
+If you have the repository cloned locally:
+```powershell
+# Interactive mode
+.\bootstrap.ps1
+
+# Specific modes
+.\bootstrap.ps1 complete
+.\bootstrap.ps1 developer
+.\bootstrap.ps1 minimal
 ```
 
 ---
