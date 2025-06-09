@@ -2,7 +2,7 @@
 
 My personal configurations for a productive development environment, previously managed with Stow, now is an idempotent ansible playbook!
 
-This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, PyEnv, uv, Neovim, and other CLI tools.
+This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, PyEnv, uv, Neovim, Komorebi (Windows), and other CLI tools.
 
 Lots of inspiration has been taken from this highly suggested video: [My Neovim & Tmux Terminal Dev Workflow as a Principal Engineer](https://www.youtube.com/watch?v=yCgieVu13VQ)
 
@@ -89,6 +89,7 @@ If you have the repository cloned locally:
 ```
 
 ---
+
 ## WSL
 To move WSL distribution to another drive:
 ```powershell
@@ -96,7 +97,9 @@ wsl --unmount
 # cd to the target directory in PowerShell
 wsl --manage Ubuntu --move . # Replace 'Ubuntu' if your distro name is different
 ```
+
 ---
+
 ## STOW (Dotfile Management)
 
 These dotfiles use `GNU Stow`. The bootstrap script handles stowing `zsh` and `tmux` packages from `~/dotfiles` to `~`.
@@ -105,7 +108,10 @@ For more on Stow, see this [excellent explanation by /u/Trollw00t](https://www.r
 The structure for Stow means a file like `~/.config/tmux/tmux.conf` would be stored as `~/dotfiles/tmux/.config/tmux/tmux.conf`.
 
 ---
-## PyEnv Cheatsheet
+
+## Cheatsheets
+
+### PyEnv
 
 - `pyenv install <version>`: Install a Python version.
 - `pyenv versions`: List installed versions.
@@ -116,19 +122,88 @@ The structure for Stow means a file like `~/.config/tmux/tmux.conf` would be sto
 - `pyenv update`: Update PyEnv.
 
 ---
-## TMUX Cheatsheet
 
-My Tmux leader key is `Ctrl+s`. Tmux configuration is typically at `~/.config/tmux/tmux.conf` (managed by `stow`).
-For a general Tmux cheatsheet, see: [tmuxcheatsheet.com](https://tmuxcheatsheet.com/).
+### TMUX
 
-**Key Custom Actions:**
-- **Reload Tmux Config:** `leader + R` (ensure this is mapped in your `tmux.conf`).
-- **Install TPM Plugins:** `leader + I` (capital 'i') (after adding them to `tmux.conf`).
-- **Vim-style navigation between panes:** `leader + h, j, k, l` (if configured).
+My Tmux leader key is `Ctrl+s`. Tmux configuration is at `~/.config/tmux/tmux.conf` (managed by `stow`).
+Windows and panes start at **1** instead of 0 for easier keyboard navigation.
+
+**System Management:**
+- **Reload Config:** `Ctrl+s, r` - Reloads tmux configuration with confirmation
+- **Install Plugins:** `Ctrl+s, I` (capital 'i') - Install TPM plugins after adding them to config
+
+**Window Management:**
+- **Quick Switch:** `Alt+H` / `Alt+L` - Previous/next window (no prefix needed)
+- **Create Window:** `Ctrl+s, c`
+- **Close Window:** `Ctrl+s, &`
+- **Rename Window:** `Ctrl+s, ,`
+
+**Pane Management:**
+- **Split Horizontal:** `Ctrl+s, |` - Split pane horizontally (intuitive)
+- **Split Vertical:** `Ctrl+s, -` - Split pane vertically (intuitive)
+- **Navigate Panes:** `Ctrl+s, h/j/k/l` - Vim-style pane navigation
+- **Resize Panes:** `Ctrl+s, Shift+H/J/K/L` - Resize panes (repeatable)
+- **Close Pane:** `Ctrl+s, x`
+
+**Copy Mode (Vim-style):**
+- **Enter Copy Mode:** `Ctrl+s, [`
+- **Start Selection:** `v` (in copy mode)
+- **Rectangle Selection:** `Ctrl+v` (in copy mode)
+- **Copy Selection:** `y` (in copy mode)
+- **Paste:** `Ctrl+s, ]`
+
+**Theme:** Uses Dracula theme with CPU usage, RAM usage, and time display.
+
+For a complete Tmux cheatsheet, see: [tmuxcheatsheet.com](https://tmuxcheatsheet.com/).
 
 ---
+
+### Komorebi (Windows Tiling Manager)
+
+Komorebi uses the **Windows key** as the modifier to avoid conflicts with tmux Alt shortcuts.
+
+**System Management:**
+- **Reload whkd:** `Win+O` - Restart the hotkey daemon
+- **Reload Komorebi:** `Win+Shift+O` - Reload komorebi configuration
+
+**Window Management:**
+- **Close Window:** `Win+Q`
+- **Minimize Window:** `Win+M`
+- **Toggle Float:** `Win+T` - Toggle floating mode
+- **Toggle Monocle:** `Win+Shift+F` - Full-screen current window
+
+**Window Focus:**
+- **Navigate:** `Win+H/J/K/L` - Vim-style window focus
+- **Cycle Focus:** `Win+Shift+[` / `Win+Shift+]` - Cycle through windows
+
+**Window Movement:**
+- **Move Window:** `Win+Shift+H/J/K/L` - Move window in direction
+- **Promote Window:** `Win+Shift+Enter` - Move window to master position
+
+**Window Stacking:**
+- **Stack Windows:** `Win+Arrow Keys` - Stack window in direction
+- **Unstack:** `Win+;` - Remove window from stack
+- **Cycle Stack:** `Win+[` / `Win+]` - Navigate stacked windows
+
+**Resizing:**
+- **Horizontal:** `Win++` / `Win+-` - Increase/decrease horizontal size
+- **Vertical:** `Win+Shift++` / `Win+Shift+-` - Increase/decrease vertical size
+
+**Layout Management:**
+- **Flip Horizontal:** `Win+X` - Flip layout horizontally
+- **Flip Vertical:** `Win+Y` - Flip layout vertically
+- **Retile:** `Win+Shift+R` - Force retiling of all windows
+- **Pause/Resume:** `Win+P` - Toggle window management
+
+**Workspaces:**
+- **Switch Workspace:** `Win+1-8` - Focus workspace 1-8
+- **Move to Workspace:** `Win+Shift+1-8` - Move current window to workspace
+
+---
+
 ## CLI Tools
 
 ### yazi
 
+Modern file manager with vim-like keybindings and rich features.
 Check: https://www.youtube.com/watch?v=iKb3cHDD9hw
