@@ -31,7 +31,7 @@ function Test-WingetApp {
     try {
         # Use winget list with --id flag and suppress stderr, capture stdout
         $result = winget list --id $AppId --exact --accept-source-agreements 2>$null
-        
+
         # Check if the command succeeded
         if ($LASTEXITCODE -eq 0) {
             return $true
@@ -684,8 +684,6 @@ $weztermConfigScript = {
 
 Install-OrConfigureApp -AppId "wez.wezterm" -AppName "WezTerm" -ConfigurationScript $weztermConfigScript
 
-# Windows Auto Night Mode (for automatic light/dark theme switching)
-Install-OrConfigureApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
 
 # Spotify with SpotX modifications (ad-free)
 Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -new_theme"'
@@ -697,20 +695,23 @@ Install-OrConfigureApp -AppId "DigitalScholar.Zotero" -AppName "Zotero"
 Install-OrConfigureApp -AppId "Notion.Notion" -AppName "Notion"
 
 # Communication Applications
-Install-OrConfigureApp -AppId "Discord.Discord" -AppName "Discord"
 
 # Gaming Applications
 Install-OrConfigureApp -AppId "Valve.Steam" -AppName "Steam"
+Install-OrConfigureApp -AppId "Discord.Discord" -AppName "Discord"
+
+# Entertainment Applications
+Install-OrConfigureApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # UI Enhancement Applications
 Install-OrConfigureApp -AppId "CharlesMilette.TranslucentTB" -AppName "TranslucentTB (transparent taskbar)"
+Install-OrConfigureApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
 Install-OrConfigureApp -AppId "MicaForEveryone.MicaForEveryone" -AppName "Mica For Everyone (enhanced Windows UI)"
 Install-OrConfigureApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToys"
 
 # Utility Applications
 Install-OrConfigureApp -AppId "7zip.7zip" -AppName "7-Zip"
 Install-OrConfigureApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
-Install-OrConfigureApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # Web Browser
 Install-OrConfigureApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
