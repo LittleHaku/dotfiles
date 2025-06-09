@@ -353,6 +353,38 @@ try {
     Write-Host "After restart, WSL will continue setup automatically."
 }
 
+# Check if Arch Linux is installed in WSL
+Write-Host "`nChecking for Arch Linux distribution..." -ForegroundColor Cyan
+try {
+    $wslDistributions = wsl --list --quiet 2>$null
+    $archInstalled = $false
+
+    if ($wslDistributions) {
+        foreach ($distro in $wslDistributions) {
+            if ($distro -match "arch" -or $distro -match "Arch") {
+                $archInstalled = $true
+                Write-Host "`nArch Linux is already installed in WSL" -ForegroundColor Green
+                break
+            }
+        }
+    }
+
+    if (-not $archInstalled) {
+        Write-Host "`nArch Linux not found. Installing Arch Linux..." -ForegroundColor Yellow
+        try {
+            wsl --install -d ArchLinux
+            Write-Host "`nArch Linux installation initiated. Please complete the setup when prompted." -ForegroundColor Green
+            Write-Host "You may need to restart your computer and then run the distribution setup." -ForegroundColor Yellow
+        } catch {
+            Write-Warning "`nFailed to install Arch Linux automatically. You may need to:"
+            Write-Host "1. Install Arch Linux manually from the Microsoft Store" -ForegroundColor Yellow
+            Write-Host "2. Or run: wsl --install -d ArchLinux" -ForegroundColor Yellow
+        }
+    }
+} catch {
+    Write-Warning "`nCould not check WSL distributions. WSL may need to be set up first."
+}
+
 # WSL Configuration Setup
 Write-Host "`nSetting up WSL configuration..." -ForegroundColor Cyan
 $WslConfigPath = "$env:USERPROFILE\.wslconfig"
