@@ -579,17 +579,17 @@ if ($installWezterm) {
         Write-Host "Created WezTerm config directory: $WeztermConfigDir" -ForegroundColor Green
     }
 
-    # Copy WezTerm configuration if source exists
+    # Symlink WezTerm configuration if source exists
     if (Test-Path -Path $WeztermSourceConfig) {
-        # Backup existing config if it exists
+        # Remove existing config if it exists (file or symlink)
         if (Test-Path -Path $WeztermConfigFile) {
-            $backupFile = "$WeztermConfigFile.backup.$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-            Copy-Item $WeztermConfigFile $backupFile
-            Write-Host "Backed up existing WezTerm config to: $(Split-Path $backupFile -Leaf)" -ForegroundColor Yellow
+            Remove-Item $WeztermConfigFile -Force
+            Write-Host "Removed existing WezTerm config" -ForegroundColor Yellow
         }
 
-        Copy-Item $WeztermSourceConfig $WeztermConfigFile
-        Write-Host "WezTerm configuration deployed successfully" -ForegroundColor Green
+        # Create symbolic link
+        New-Item -ItemType SymbolicLink -Path $WeztermConfigFile -Target $WeztermSourceConfig -Force | Out-Null
+        Write-Host "WezTerm configuration symlinked from dotfiles" -ForegroundColor Green
     } else {
         Write-Warning "WezTerm source configuration not found at: $WeztermSourceConfig"
         Write-Host "You can manually create the configuration later" -ForegroundColor Yellow
