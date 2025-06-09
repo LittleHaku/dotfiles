@@ -75,6 +75,9 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --group-directories-fir
 zinit ice lucid pick"async.zsh" src"pure.zsh"
 zinit light sindresorhus/pure
 
+# Bat (batcat) theme
+export BAT_THEME="Dracula"
+
 ###################
 # PLUGINS         #
 ###################
