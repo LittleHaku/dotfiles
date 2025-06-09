@@ -697,6 +697,38 @@ $komorebiConfigScript = {
         # Continue with Komorebi setup, but hotkeys might be an issue.
     }
 
+    # Disable Win+L lock screen shortcut to allow Komorebi to use it
+    Write-Host "`nDisabling Win+L lock screen shortcut for Komorebi..." -ForegroundColor Cyan
+    try {
+        # Apply registry changes to disable Win+L
+        $regContent = @"
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableLockWorkstation"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableLockWorkstation"=dword:00000001
+"@
+        
+        # Create temporary registry file
+        $tempRegFile = "$env:TEMP\disable_winl_temp.reg"
+        Set-Content -Path $tempRegFile -Value $regContent -Encoding ASCII
+        
+        # Apply registry changes
+        reg import $tempRegFile 2>$null
+        
+        # Clean up temporary file
+        Remove-Item $tempRegFile -Force -ErrorAction SilentlyContinue
+        
+        Write-Host "Win+L shortcut disabled successfully" -ForegroundColor Green
+        Write-Host "Note: You may need to restart or log out/in for changes to take effect" -ForegroundColor Yellow
+    }
+    catch {
+        Write-Warning "Failed to disable Win+L shortcut. You may need to apply the registry changes manually."
+        Write-Host "Registry file available at: $DotfilesDir\komorebi\disable_winl.reg" -ForegroundColor Yellow
+    }
+
     # Refresh environment variables in the current session to find new executables
     # This helps ensure 'komorebic.exe' can be found by Get-Command and for 'komorebic fetch-asc'
     Write-Host "`nRefreshing PATH for current session..." -ForegroundColor DarkGray

@@ -1,0 +1,11 @@
+Windows Registry Editor Version 5.00
+
+; Disable Win+L lock screen shortcut to allow Komorebi to use it
+; This is automatically applied during Komorebi setup in bootstrap.ps1
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableLockWorkstation"=dword:00000001
+
+; Alternative method - disable through Group Policy equivalent
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableLockWorkstation"=dword:00000001
