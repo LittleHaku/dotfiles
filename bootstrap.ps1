@@ -90,7 +90,9 @@ function Install-OrConfigureApp {
         return $true
     }
 
-    Write-Host "`nDo you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
+    # App is not installed, ask if user wants to install it
+    Write-Host "`n$AppName is not installed." -ForegroundColor Yellow
+    Write-Host "Do you want to install ${AppName}? (y/n)" -ForegroundColor Cyan
     $install = Read-Host
 
     if ($install -eq "y" -or $install -eq "") {
@@ -351,9 +353,9 @@ if ($editConfig -eq "y") {
 # AUTOHOTKEY SETUP
 #------------------------------------------------
 Show-SectionHeader "AutoHotkey Setup"
-$installAhk = Install-WingetApp -AppId "AutoHotkey.AutoHotkey" -AppName "AutoHotkey"
 
-if ($installAhk) {
+# Configure AutoHotkey
+$ahkConfigScript = {
     # Define AHK directory path now that we have the dotfiles cloned
     $AhkDir = "$DotfilesDir\ahk"
 
@@ -388,13 +390,15 @@ if ($installAhk) {
     }
 }
 
+$installAhk = Install-OrConfigureApp -AppId "AutoHotkey.AutoHotkey" -AppName "AutoHotkey" -ConfigurationScript $ahkConfigScript
+
 #------------------------------------------------
 # KOMOREBI TILING WINDOW MANAGER SETUP
 #------------------------------------------------
 Show-SectionHeader "Komorebi Tiling Window Manager"
-$installKomorebi = Install-WingetApp -AppId "LGUG2Z.komorebi" -AppName "Komorebi tiling window manager"
 
-if ($installKomorebi) {
+# Configure Komorebi
+$komorebiConfigScript = {
     # Install WHKD (companion hotkey daemon)
     Write-Host "`nAttempting to install WHKD (companion hotkey daemon)..." -ForegroundColor Yellow
     winget install LGUG2Z.whkd -e --source winget
@@ -554,6 +558,8 @@ start "" "$komorebiExeFullPath" start --config "$env:USERPROFILE\komorebi.json" 
     Write-Host "You can modify your Komorebi configuration by editing files in $KomorebiConfigDir" -ForegroundColor Cyan
 }
 
+$installKomorebi = Install-OrConfigureApp -AppId "LGUG2Z.komorebi" -AppName "Komorebi tiling window manager" -ConfigurationScript $komorebiConfigScript
+
 #------------------------------------------------
 # SSH KEYS SETUP
 #------------------------------------------------
@@ -618,7 +624,7 @@ if (Test-Path -Path $TerminalSettingsPath) {
     Write-Host "`nWindows Terminal is installed" -ForegroundColor Green
     Write-Host "You can update Windows Terminal settings manually from the dotfiles" -ForegroundColor Yellow
 } else {
-    Install-WingetApp -AppId "Microsoft.WindowsTerminal" -AppName "Windows Terminal"
+    Install-OrConfigureApp -AppId "Microsoft.WindowsTerminal" -AppName "Windows Terminal"
 }
 
 #------------------------------------------------
