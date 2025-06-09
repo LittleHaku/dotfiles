@@ -14,14 +14,23 @@ config.window_decorations = "RESIZE"
 config.hide_tab_bar_if_only_one_tab = true
 
 --- Launch Options ---
-if wezterm.target_triple == "x86_64-pc-windows-msvc" then
-	config.launch_menu = {
-		{
-			label = "Windows PowerShell",
-			args = { "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-NoLogo" },
-		},
-	}
-end
+config.launch_menu = {
+  {
+    label = "Windows PowerShell",
+    args = { "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-NoLogo" },
+  },
+  {
+    label = "Windows PowerShell (Admin)",
+    args = {
+      "powershell.exe",
+      "-NoLogo",
+      "-Command",
+      "Start-Process powershell.exe -ArgumentList '-NoLogo' -Verb RunAs"
+    },
+  },
+}
+
+
 
 --- Others ---
 --- To use Windows openGL
