@@ -29,8 +29,16 @@ function Test-WingetApp {
     )
 
     try {
-        $installedApps = winget list --id $AppId --exact --accept-source-agreements 2>$null
-        return $installedApps -match $AppId
+        # Use winget list with --id flag and suppress stderr, capture stdout
+        $result = winget list --id $AppId --exact --accept-source-agreements 2>$null
+        
+        # Check if the command succeeded
+        if ($LASTEXITCODE -eq 0) {
+            # Convert result to string if it's an array and check if it contains the app ID
+            $resultString = if ($result -is [array]) { $result -join "`n" } else { $result }
+            return $resultString -match [regex]::Escape($AppId)
+        }
+        return $false
     } catch {
         return $false
     }
@@ -678,7 +686,7 @@ Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "
 # Productivity Applications
 Install-OrConfigureApp -AppId "Doist.Todoist" -AppName "Todoist"
 Install-OrConfigureApp -AppId "Obsidian.Obsidian" -AppName "Obsidian"
-Install-OrConfigureApp -AppId "Zotero.Zotero" -AppName "Zotero"
+Install-OrConfigureApp -AppId "DigitalScholar.Zotero" -AppName "Zotero"
 Install-OrConfigureApp -AppId "Notion.Notion" -AppName "Notion"
 
 # Communication Applications
@@ -695,7 +703,7 @@ Install-OrConfigureApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToy
 # Utility Applications
 Install-OrConfigureApp -AppId "7zip.7zip" -AppName "7-Zip"
 Install-OrConfigureApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
-Install-OrConfigureApp -AppId "AceStream.AceStream" -AppName "Ace Stream Media"
+Install-OrConfigureApp -AppId "AceStreamMedia.AceStreamMedia" -AppName "Ace Stream Media"
 Install-OrConfigureApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # Web Browser
