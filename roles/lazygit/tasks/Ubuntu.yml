@@ -1,0 +1,61 @@
+---
+- name: "LAZYGIT | UBUNTU | Check if lazygit is already installed"
+  ansible.builtin.command: lazygit --version
+  register: lazygit_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "LAZYGIT | UBUNTU | Get latest lazygit version"
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
+    method: GET
+    return_content: yes
+  register: lazygit_release
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Extract version number"
+  ansible.builtin.set_fact:
+    lazygit_version: "{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}"
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Create temporary directory"
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: lazygit
+  register: temp_dir
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Download lazygit tarball"
+  ansible.builtin.get_url:
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    dest: "{{ temp_dir.path }}/lazygit.tar.gz"
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Extract lazygit binary"
+  ansible.builtin.unarchive:
+    src: "{{ temp_dir.path }}/lazygit.tar.gz"
+    dest: "{{ temp_dir.path }}"
+    remote_src: yes
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Install lazygit binary"
+  ansible.builtin.copy:
+    src: "{{ temp_dir.path }}/lazygit"
+    dest: /usr/local/bin/lazygit
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: yes
+  become: true
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Clean up temporary directory"
+  ansible.builtin.file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | UBUNTU | Verify lazygit installation"
+  ansible.builtin.command: lazygit --version
+  register: lazygit_verify
+  changed_when: false

@@ -75,6 +75,7 @@
       - bash
       - zsh
       - git
+      - lazygit
       - neovim
       - npm
       - rust

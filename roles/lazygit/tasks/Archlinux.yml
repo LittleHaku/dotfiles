@@ -1,0 +1,25 @@
+---
+- name: "LAZYGIT | ARCH | Check if lazygit is already installed"
+  ansible.builtin.command: lazygit --version
+  register: lazygit_version_check
+  failed_when: false
+  changed_when: false
+
+- name: "LAZYGIT | ARCH | Install lazygit via pacman"
+  ansible.builtin.package:
+    name: lazygit
+    state: present
+  become: true
+  when: lazygit_version_check.rc != 0
+
+- name: "LAZYGIT | ARCH | Update lazygit if already installed"
+  ansible.builtin.package:
+    name: lazygit
+    state: latest
+  become: true
+  when: lazygit_version_check.rc == 0
+
+- name: "LAZYGIT | ARCH | Verify lazygit installation"
+  ansible.builtin.command: lazygit --version
+  register: lazygit_verify
+  changed_when: false
