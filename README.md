@@ -1,6 +1,6 @@
 # dotfiles
 
-My personal configurations for a productive development environment, previously managed with Stow, now is an idempotent ansible playbook!
+My personal configurations for a "productive"" development environment, previously managed with Stow (you can still find the branch), now is an idempotent ansible playbook!
 
 This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, uv, Neovim, Komorebi (Windows), and other CLI tools.
 
@@ -22,20 +22,9 @@ bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/
 bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/dotfiles)
 ```
 
-This single command will:
-1. ✅ Detect your OS (Ubuntu/Arch) and install required packages
-2. ✅ Generate SSH keys and guide you through GitHub setup
-3. ✅ Clone the dotfiles repository (HTTPS or SSH)
-4. ✅ Run the complete Ansible playbook to configure your environment
-5. ✅ Set up Zsh, Tmux, Git, and all development tools
+This single command will detect your OS (Ubuntu/Arch), install required packages, generate SSH keys, guide you through GitHub setup, clone the dotfiles repository, and run the complete Ansible playbook to configure your environment with Zsh, Tmux, Git, and all development tools.
 
-### Alternative: Bootstrap Script
-
-For environments that need additional setup or legacy systems:
-
-```bash
-bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.sh)
-```
+On Linux, the dotfiles binary is added to your PATH, so you can run `dotfiles` from anywhere to update your configuration.
 
 ---
 
@@ -48,22 +37,11 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object Net.WebClient
 ```
 
 #### Installation Modes
-For automated installations without prompts, you can specify different modes:
+For automated installations without prompts, you can specify different modes by appending the mode name right after the command:
 
-**Complete Installation** - Installs everything:
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(iwr -useb 'https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1') } complete"
-```
-
-**Developer Mode** - Perfect for office/work environments (productivity + development tools, excludes gaming):
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(iwr -useb 'https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1') } developer"
-```
-
-**Minimal Installation** - Only essential development tools:
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(iwr -useb 'https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bootstrap.ps1') } minimal"
-```
+- **Complete Installation** - Installs everything: `complete`
+- **Developer Mode** - Perfect for office/work environments (productivity + development tools, excludes gaming): `developer`  
+- **Minimal Installation** - Only essential development tools: `minimal`
 
 #### What Each Mode Includes:
 
@@ -105,7 +83,7 @@ Windows and panes start at **1** instead of 0 for easier keyboard navigation.
 **Pane Management:**
 - **Split Horizontal:** `Ctrl+s, |` - Split pane horizontally (intuitive)
 - **Split Vertical:** `Ctrl+s, -` - Split pane vertically (intuitive)
-- **Navigate Panes:** `Ctrl+s, h/j/k/l` - Vim-style pane navigation
+- **Navigate Panes:** `Ctrl+s, h/j/k/l` - Vim-style pane navigation (works without leader when not in neovim)
 - **Resize Panes:** `Ctrl+s, Shift+H/J/K/L` - Resize panes (repeatable)
 - **Close Pane:** `Ctrl+s, x`
 
@@ -121,6 +99,8 @@ Windows and panes start at **1** instead of 0 for easier keyboard navigation.
 For a complete Tmux cheatsheet, see: [tmuxcheatsheet.com](https://tmuxcheatsheet.com/).
 
 ---
+
+- **Lock Screen:** `Ctrl+Win+L` - Lock the system
 
 ### Komorebi (Windows Tiling Manager)
 
@@ -165,9 +145,41 @@ Komorebi uses the **Windows key** as the modifier to avoid conflicts with tmux A
 
 ---
 
-## CLI Tools
+## CLI Tools Cheatsheet
 
 ### yazi
-
 Modern file manager with vim-like keybindings and rich features.
+- **When to use:** File browsing, bulk operations, visual file management
+- **Launch:** `yazi` or `y` (alias)
+- **Key features:** Image previews, syntax highlighting, bulk rename
+- **Navigate:** `h/j/k/l` - vim-style navigation
+- **Select:** `Space` - toggle selection, `v` - visual mode
+- **Actions:** `d` - delete, `r` - rename, `c` - copy, `x` - cut
+
 Check: https://www.youtube.com/watch?v=iKb3cHDD9hw
+
+### Key CLI Tools Overview
+
+**File Operations:**
+- `eza` - Modern `ls` replacement with icons and git status
+- `fd` - Fast `find` alternative with intuitive syntax
+- `ripgrep` (rg) - Ultra-fast text search tool
+- `bat` - `cat` with syntax highlighting and git integration
+
+**Navigation:**
+- `zoxide` (z) - Smart directory jumping based on frequency
+- `fzf` - Fuzzy finder for files, history, processes
+
+**Git:**
+- `lazygit` - Terminal UI for git operations
+- `difftastic` - Structural diff tool that understands syntax
+
+**System:**
+- `lsd` - LSDeluxe, another modern `ls` with icons
+- `tmux` - Terminal multiplexer for session management
+- `uv` - Fast Python package installer and resolver
+
+**Development:**
+- `neovim` - Modern vim-based editor
+- `rust` toolchain - Systems programming language
+- `npm` - Node.js package manager
