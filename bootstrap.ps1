@@ -703,7 +703,6 @@ Install-OrConfigureApp -AppId "Microsoft.PowerToys" -AppName "Microsoft PowerToy
 # Utility Applications
 Install-OrConfigureApp -AppId "7zip.7zip" -AppName "7-Zip"
 Install-OrConfigureApp -AppId "VideoLAN.VLC" -AppName "VLC Media Player"
-Install-OrConfigureApp -AppId "AceStreamMedia.AceStreamMedia" -AppName "Ace Stream Media"
 Install-OrConfigureApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # Web Browser
@@ -733,7 +732,7 @@ Write-Host "  - Development: Visual Studio Code, Docker Desktop, WezTerm"
 Write-Host "  - Productivity: Todoist, Obsidian, Zotero, Notion"
 Write-Host "  - Communication: Discord"
 Write-Host "  - Gaming: Steam"
-Write-Host "  - Utilities & Media: Windows Terminal, Auto Night Mode, Spotify, 7-Zip, VLC Media Player, Ace Stream Media, Stremio"
+Write-Host "  - Utilities & Media: Windows Terminal, Auto Night Mode, Spotify, 7-Zip, VLC Media Player, Stremio"
 Write-Host "  - UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys"
 Write-Host "  - Web Browsers: Zen Browser, Tor Browser"
 
