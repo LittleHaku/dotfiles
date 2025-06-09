@@ -378,18 +378,139 @@ try {
 
     if (-not $archInstalled) {
         Write-Host "`nArch Linux not found. Installing Arch Linux..." -ForegroundColor Yellow
-        try {
-            wsl --install -d ArchLinux
-            Write-Host "`nArch Linux installation initiated. Please complete the setup when prompted." -ForegroundColor Green
-            Write-Host "You may need to restart your computer and then run the distribution setup." -ForegroundColor Yellow
-        } catch {
-            Write-Warning "`nFailed to install Arch Linux automatically. You may need to:"
-            Write-Host "1. Install Arch Linux manually from the Microsoft Store" -ForegroundColor Yellow
-            Write-Host "2. Or run: wsl --install -d ArchLinux" -ForegroundColor Yellow
+
+        # Check if we should install automatically based on mode
+        $shouldInstallArch = $false
+        if ($CurrentMode -and $CurrentMode.AutoInstall) {
+            $shouldInstallArch = $true
+            Write-Host "Auto-installing Arch Linux (running in $($CurrentMode.Name) mode)..." -ForegroundColor Cyan
+        } else {
+            $installArch = Get-YesNoInput "Do you want to install Arch Linux in WSL? (y/n)"
+            $shouldInstallArch = ($installArch -eq "y" -or $installArch -eq "")
+        }
+
+        if ($shouldInstallArch) {
+            try {
+                wsl --install -d ArchLinux
+                Write-Host "`nArch Linux installation initiated." -ForegroundColor Green
+
+                # Get username for WSL configuration
+                if ($CurrentMode -and $CurrentMode.AutoInstall) {
+                    $wslUsername = "ivan"  # Default username for auto modes
+                    Write-Host "Using default username 'ivan' for WSL Arch Linux setup" -ForegroundColor Cyan
+                } else {
+                    $wslUsername = Read-Host "`nEnter the username you want to use in Arch Linux WSL (default: ivan)"
+                    if ([string]::IsNullOrEmpty($wslUsername)) {
+                        $wslUsername = "ivan"
+                    }
+                }
+
+                Write-Host "`nArch Linux installation notes:" -ForegroundColor Yellow
+                Write-Host "1. You may need to restart your computer to complete WSL installation" -ForegroundColor White
+                Write-Host "2. After restart, open 'Arch' from Start Menu to complete initial setup" -ForegroundColor White
+                Write-Host "3. During first run, create a user account with username: $wslUsername" -ForegroundColor White
+                Write-Host "4. To set '$wslUsername' as default user, run these commands in Arch Linux:" -ForegroundColor White
+                Write-Host "   sudo tee /etc/wsl.conf > /dev/null <<EOF" -ForegroundColor Gray
+                Write-Host "   [user]" -ForegroundColor Gray
+                Write-Host "   default=$wslUsername" -ForegroundColor Gray
+                Write-Host "   EOF" -ForegroundColor Gray
+                Write-Host "5. Then restart WSL with: wsl --shutdown && wsl -d ArchLinux" -ForegroundColor White
+
+                # Store username for later use
+                $script:ArchUsername = $wslUsername
+
+            } catch {
+                Write-Warning "`nFailed to install Arch Linux automatically. You may need to:"
+                Write-Host "1. Install Arch Linux manually from the Microsoft Store" -ForegroundColor Yellow
+                Write-Host "2. Or run: wsl --install -d ArchLinux" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "`nSkipping Arch Linux installation" -ForegroundColor Yellow
         }
     }
 } catch {
     Write-Warning "`nCould not check WSL distributions. WSL may need to be set up first."
+}
+
+# Configure Arch Linux default user if it was just installed
+if ($script:ArchUsername) {
+    Write-Host "`nConfiguring Arch Linux default user..." -ForegroundColor Cyan
+
+    # Wait a moment for WSL installation to settle
+    Start-Sleep -Seconds 3
+
+    # Check if Arch Linux is available
+    try {
+        $archAvailable = wsl -l -q | Where-Object { $_.Trim() -eq "ArchLinux" -or $_.Trim() -eq "Arch" }
+
+        if ($archAvailable) {
+            Write-Host "Attempting to configure default user '$script:ArchUsername' in Arch Linux..." -ForegroundColor Yellow
+
+            # Try to set the default user configuration
+            $wslConfCommand = @"
+sudo tee /etc/wsl.conf > /dev/null <<EOF
+[user]
+default=$script:ArchUsername
+EOF
+"@
+
+            try {
+                # First, check if the user exists in Arch Linux
+                $userCheck = wsl -d ArchLinux -- id -u $script:ArchUsername 2>$null
+
+                if ($LASTEXITCODE -eq 0) {
+                    # User exists, configure wsl.conf
+                    wsl -d ArchLinux -- bash -c $wslConfCommand
+
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Host "Successfully configured '$script:ArchUsername' as default user in Arch Linux" -ForegroundColor Green
+                        Write-Host "WSL will use this user by default after next restart" -ForegroundColor Green
+
+                        # Restart WSL to apply changes
+                        Write-Host "Restarting WSL to apply user configuration..." -ForegroundColor Cyan
+                        wsl --shutdown
+                        Start-Sleep -Seconds 2
+
+                        # Test the configuration
+                        $currentUser = wsl -d ArchLinux -- whoami 2>$null
+                        if ($currentUser -eq $script:ArchUsername) {
+                            Write-Host "Default user configuration applied successfully!" -ForegroundColor Green
+                        } else {
+                            Write-Host "User configuration may need manual verification" -ForegroundColor Yellow
+                        }
+                    } else {
+                        Write-Warning "Failed to configure wsl.conf automatically"
+                    }
+                } else {
+                    Write-Host "User '$script:ArchUsername' not found in Arch Linux yet" -ForegroundColor Yellow
+                    Write-Host "This is normal if Arch Linux hasn't completed initial setup" -ForegroundColor Yellow
+                }
+            } catch {
+                Write-Host "Could not automatically configure Arch Linux user. This is normal if:" -ForegroundColor Yellow
+                Write-Host "- Arch Linux hasn't completed initial setup yet" -ForegroundColor Yellow
+                Write-Host "- The user hasn't been created yet" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "Arch Linux distribution not yet available for configuration" -ForegroundColor Yellow
+        }
+
+        # Always provide manual instructions
+        Write-Host "`nManual configuration instructions:" -ForegroundColor Cyan
+        Write-Host "If automatic configuration didn't work, follow these steps after Arch Linux setup:" -ForegroundColor White
+        Write-Host "1. Open Arch Linux from Start Menu and complete initial setup" -ForegroundColor White
+        Write-Host "2. Create user '$script:ArchUsername' if not already created" -ForegroundColor White
+        Write-Host "3. Run these commands in Arch Linux:" -ForegroundColor White
+        Write-Host "   sudo tee /etc/wsl.conf > /dev/null <<EOF" -ForegroundColor Gray
+        Write-Host "   [user]" -ForegroundColor Gray
+        Write-Host "   default=$script:ArchUsername" -ForegroundColor Gray
+        Write-Host "   EOF" -ForegroundColor Gray
+        Write-Host "4. Exit Arch Linux and run: wsl --shutdown" -ForegroundColor White
+        Write-Host "5. Restart Arch Linux with: wsl -d ArchLinux" -ForegroundColor White
+
+    } catch {
+        Write-Host "Could not configure Arch Linux automatically" -ForegroundColor Yellow
+        Write-Host "Please follow the manual setup instructions above" -ForegroundColor Yellow
+    }
 }
 
 # WSL Configuration Setup
