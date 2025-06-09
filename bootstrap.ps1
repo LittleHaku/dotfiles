@@ -798,7 +798,7 @@ Install-OrConfigureApp -AppId "wez.wezterm" -AppName "WezTerm" -ConfigurationScr
 
 
 # Spotify with SpotX modifications (ad-free)
-Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -new_theme"' -AppId "SpotX"
+Install-CustomApp -AppName "Spotify with SpotX (ad-free)" -InstallCommand 'iex "& { $(iwr -useb ''https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1'') } -confirm_uninstall_ms_spoti -confirm_spoti_recomended_over -podcasts_off -block_update_on -start_spoti -new_theme -adsections_off -lyrics_stat spotify"'
 
 # Productivity Applications
 Install-OrConfigureApp -AppId "Doist.Todoist" -AppName "Todoist"
