@@ -4,10 +4,10 @@
   "window_hiding_behaviour": "Cloak",
   "cross_monitor_move_behaviour": "Insert",
   "mouse_follows_focus": false,
-  "default_workspace_padding": 10,
-  "default_container_padding": 5,
+  "default_workspace_padding": 8,
+  "default_container_padding": 3,
   "border": true,
-  "border_width": 5,
+  "border_width": 4,
   "border_offset": -1,
   "theme": {
     "colours": {
@@ -31,7 +31,7 @@
     "palette": "Custom",
     "name": "Ashes",
     "unfocused_border": "Base01",
-    "bar_accent": "Base03",
+    "bar_accent": "Base07",
     "single_border": "Base03"
   },
   "animation": {
