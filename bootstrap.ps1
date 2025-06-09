@@ -356,14 +356,21 @@ try {
 # Check if Arch Linux is installed in WSL
 Write-Host "`nChecking for Arch Linux distribution..." -ForegroundColor Cyan
 try {
-    $wslDistributions = wsl --list --quiet 2>$null
+    $wslOutput = wsl --list --quiet 2>$null
     $archInstalled = $false
 
-    if ($wslDistributions) {
+    if ($wslOutput) {
+        # Split the output by newlines and filter out empty lines
+        $wslDistributions = $wslOutput -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
+
         foreach ($distro in $wslDistributions) {
-            if ($distro -match "arch" -or $distro -match "Arch") {
+            $distroName = $distro.Trim()
+            Write-Host "Found distribution: '$distroName'" -ForegroundColor Gray
+
+            # Check specifically for "archlinux" (case insensitive)
+            if ($distroName -match "^archlinux$") {
                 $archInstalled = $true
-                Write-Host "`nArch Linux is already installed in WSL" -ForegroundColor Green
+                Write-Host "`nArch Linux is already installed in WSL (found: $distroName)" -ForegroundColor Green
                 break
             }
         }
@@ -384,7 +391,6 @@ try {
 } catch {
     Write-Warning "`nCould not check WSL distributions. WSL may need to be set up first."
 }
-
 # WSL Configuration Setup
 Write-Host "`nSetting up WSL configuration..." -ForegroundColor Cyan
 $WslConfigPath = "$env:USERPROFILE\.wslconfig"
