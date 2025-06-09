@@ -34,9 +34,7 @@ function Test-WingetApp {
         
         # Check if the command succeeded
         if ($LASTEXITCODE -eq 0) {
-            # Convert result to string if it's an array and check if it contains the app ID
-            $resultString = if ($result -is [array]) { $result -join "`n" } else { $result }
-            return $resultString -match [regex]::Escape($AppId)
+            return $true
         }
         return $false
     } catch {
