@@ -2,7 +2,7 @@
 
 My personal configurations for a productive development environment, previously managed with Stow, now is an idempotent ansible playbook!
 
-This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, PyEnv, uv, Neovim, Komorebi (Windows), and other CLI tools.
+This setup configures: Zsh (with Zinit), Tmux (with TPM), Git, SSH, uv, Neovim, Komorebi (Windows), and other CLI tools.
 
 Lots of inspiration has been taken from this highly suggested video: [My Neovim & Tmux Terminal Dev Workflow as a Principal Engineer](https://www.youtube.com/watch?v=yCgieVu13VQ)
 
@@ -20,11 +20,6 @@ bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/
 **Or with wget:**
 ```bash
 bash <(wget -qO- https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/dotfiles)
-```
-
-**For WSL environments:**
-```bash
-bash <(curl -sSL https://raw.githubusercontent.com/LittleHaku/dotfiles/main/bin/dotfiles) --wsl
 ```
 
 This single command will:
@@ -90,38 +85,7 @@ If you have the repository cloned locally:
 
 ---
 
-## WSL
-To move WSL distribution to another drive:
-```powershell
-wsl --unmount
-# cd to the target directory in PowerShell
-wsl --manage Ubuntu --move . # Replace 'Ubuntu' if your distro name is different
-```
-
----
-
-## STOW (Dotfile Management)
-
-These dotfiles use `GNU Stow`. The bootstrap script handles stowing `zsh` and `tmux` packages from `~/dotfiles` to `~`.
-For more on Stow, see this [excellent explanation by /u/Trollw00t](https://www.reddit.com/r/archlinux/comments/bloeme/comment/emq8f5k/).
-
-The structure for Stow means a file like `~/.config/tmux/tmux.conf` would be stored as `~/dotfiles/tmux/.config/tmux/tmux.conf`.
-
----
-
 ## Cheatsheets
-
-### PyEnv
-
-- `pyenv install <version>`: Install a Python version.
-- `pyenv versions`: List installed versions.
-- `pyenv global <version>`: Set global Python version.
-- `pyenv local <version>`: Set Python version for current directory (creates `.python-version`).
-- `pyenv shell <version>`: Set Python version for current shell session.
-- `pyenv uninstall <version>`: Uninstall a Python version.
-- `pyenv update`: Update PyEnv.
-
----
 
 ### TMUX
 
