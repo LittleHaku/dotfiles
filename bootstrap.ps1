@@ -36,12 +36,6 @@ function Test-WingetApp {
         if ($LASTEXITCODE -eq 0) {
             return $true
         }
-        # Special case: detect Tor Browser portable installation
-        if ($AppId -eq 'TorProject.TorBrowser') {
-            if (Test-Path "$env:LOCALAPPDATA\Programs\Tor Browser\Browser\firefox.exe") {
-                return $true
-            }
-        }
         return $false
     } catch {
         return $false
@@ -711,7 +705,6 @@ Install-OrConfigureApp -AppId "Stremio.Stremio" -AppName "Stremio"
 
 # Web Browser
 Install-OrConfigureApp -AppId "Zen-Team.Zen-Browser" -AppName "Zen Browser"
-Install-OrConfigureApp -AppId "TorProject.TorBrowser" -AppName "Tor Browser"
 
 #------------------------------------------------
 # SUMMARY
@@ -738,7 +731,7 @@ Write-Host "  - Communication: Discord"
 Write-Host "  - Gaming: Steam"
 Write-Host "  - Utilities & Media: Windows Terminal, Auto Night Mode, Spotify, 7-Zip, VLC Media Player, Stremio"
 Write-Host "  - UI Enhancements: TranslucentTB, MicaForEveryone, Microsoft PowerToys"
-Write-Host "  - Web Browsers: Zen Browser, Tor Browser"
+Write-Host "  - Web Browsers: Zen Browser"
 
 Write-Host "`nNext steps:"
 Write-Host "1. Restart your computer if WSL was just installed"
