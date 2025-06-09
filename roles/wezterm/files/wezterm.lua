@@ -15,22 +15,29 @@ config.hide_tab_bar_if_only_one_tab = true
 
 --- Launch Options ---
 config.launch_menu = {
-  {
-    label = "Windows PowerShell",
-    args = { "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-NoLogo" },
-  },
-  {
-    label = "Windows PowerShell (Admin)",
-    args = {
-      "powershell.exe",
-      "-NoLogo",
-      "-Command",
-      "Start-Process powershell.exe -ArgumentList '-NoLogo' -Verb RunAs"
-    },
-  },
+	{
+		label = "Windows PowerShell",
+		args = { "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-NoLogo" },
+	},
+	{
+		label = "Windows PowerShell (Admin)",
+		args = {
+			"powershell.exe",
+			"-NoLogo",
+			"-Command",
+			"Start-Process powershell.exe -ArgumentList '-NoLogo' -Verb RunAs",
+		},
+	},
 }
 
+--- Key Bindings ---
+config.keys = config.keys or {}
 
+table.insert(config.keys, {
+	key = "p",
+	mods = "CTRL|SHIFT",
+	action = wezterm.action.ShowLauncher,
+})
 
 --- Others ---
 --- To use Windows openGL
