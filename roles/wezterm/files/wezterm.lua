@@ -14,21 +14,40 @@ config.window_decorations = "RESIZE"
 config.hide_tab_bar_if_only_one_tab = true
 
 --- Launch Options ---
-config.launch_menu = {
-	{
-		label = "Windows PowerShell",
-		args = { "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-NoLogo" },
-	},
-	{
-		label = "Windows PowerShell (Admin)",
-		args = {
-			"powershell.exe",
-			"-NoLogo",
-			"-Command",
-			"Start-Process powershell.exe -ArgumentList '-NoLogo' -Verb RunAs",
+-- Set default domain to WSL Arch, fallback to Ubuntu
+local launch_menu = {}
+
+if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
+	-- Windows-specific launch options
+	table.insert(launch_menu, {
+		label = 'PowerShell',
+		args = { 'powershell.exe', '-NoLogo' },
+	})
+
+	table.insert(launch_menu, {
+		label = 'PowerShell Admin',
+		args = { 'powershell.exe', '-NoLogo', '-Command', 'Start-Process powershell -Verb RunAs' },
+	})
+
+	-- Set default domain to WSL
+	config.default_domain = 'WSL:Arch'
+
+	-- Define WSL domains with fallback
+	config.wsl_domains = {
+		{
+			name = 'WSL:Arch',
+			distribution = 'Arch',
+			default_cwd = '~',
 		},
-	},
-}
+		{
+			name = 'WSL:Ubuntu',
+			distribution = 'Ubuntu',
+			default_cwd = '~',
+		},
+	}
+end
+
+config.launch_menu = launch_menu
 
 --- Key Bindings ---
 config.keys = config.keys or {}
