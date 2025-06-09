@@ -7,6 +7,7 @@ config.line_height = 1
 config.font = wezterm.font("CaskaydiaMono Nerd Font")
 
 --- Colors ---
+config.term = "xterm-256color"
 config.color_scheme = "Dracula (Official)"
 
 --- Appearance ---
