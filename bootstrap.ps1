@@ -367,8 +367,8 @@ try {
             $distroName = $distro.Trim()
             Write-Host "Found distribution: '$distroName'" -ForegroundColor Gray
 
-            # Check specifically for "archlinux" (case insensitive)
-            if ($distroName -match "^archlinux$") {
+            # Check for archlinux or Arch (case insensitive)
+            if ($distroName -eq "archlinux" -or $distroName -eq "Arch") {
                 $archInstalled = $true
                 Write-Host "`nArch Linux is already installed in WSL (found: $distroName)" -ForegroundColor Green
                 break
@@ -391,6 +391,7 @@ try {
 } catch {
     Write-Warning "`nCould not check WSL distributions. WSL may need to be set up first."
 }
+
 # WSL Configuration Setup
 Write-Host "`nSetting up WSL configuration..." -ForegroundColor Cyan
 $WslConfigPath = "$env:USERPROFILE\.wslconfig"
