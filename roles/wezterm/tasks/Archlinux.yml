@@ -1,0 +1,7 @@
+---
+- name: Install WezTerm (Arch)
+  community.general.pacman:
+    name: wezterm
+    state: present
+  become: true
+  when: ansible_host_environment_is_wsl != "true"

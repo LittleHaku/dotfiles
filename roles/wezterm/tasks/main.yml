@@ -1,0 +1,16 @@
+---
+- name: Install WezTerm
+  include_tasks: "{{ ansible_os_family }}.yml"
+
+- name: Create WezTerm config directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/wezterm"
+    state: directory
+    mode: '0755'
+
+- name: Deploy WezTerm configuration
+  ansible.builtin.copy:
+    src: wezterm.lua
+    dest: "{{ ansible_env.HOME }}/.config/wezterm/wezterm.lua"
+    mode: '0644'
+    backup: true

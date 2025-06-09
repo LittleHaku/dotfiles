@@ -568,6 +568,37 @@ Write-Host "Installing additional useful applications..." -ForegroundColor Cyan
 # Development Tools
 Install-WingetApp -AppId "Microsoft.VisualStudioCode" -AppName "Visual Studio Code"
 Install-WingetApp -AppId "Docker.DockerDesktop" -AppName "Docker Desktop"
+$installWezterm = Install-WingetApp -AppId "wez.wezterm" -AppName "WezTerm"
+
+if ($installWezterm) {
+    # Setup WezTerm configuration
+    Write-Host "`nSetting up WezTerm configuration..." -ForegroundColor Cyan
+    $WeztermConfigDir = "$env:USERPROFILE\.config\wezterm"
+    $WeztermConfigFile = "$WeztermConfigDir\wezterm.lua"
+    $WeztermSourceConfig = "$DotfilesDir\roles\wezterm\files\wezterm.lua"
+
+    # Create WezTerm config directory
+    if (-not (Test-Path -Path $WeztermConfigDir)) {
+        New-Item -Path $WeztermConfigDir -ItemType Directory -Force | Out-Null
+        Write-Host "Created WezTerm config directory: $WeztermConfigDir" -ForegroundColor Green
+    }
+
+    # Copy WezTerm configuration if source exists
+    if (Test-Path -Path $WeztermSourceConfig) {
+        # Backup existing config if it exists
+        if (Test-Path -Path $WeztermConfigFile) {
+            $backupFile = "$WeztermConfigFile.backup.$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+            Copy-Item $WeztermConfigFile $backupFile
+            Write-Host "Backed up existing WezTerm config to: $(Split-Path $backupFile -Leaf)" -ForegroundColor Yellow
+        }
+
+        Copy-Item $WeztermSourceConfig $WeztermConfigFile
+        Write-Host "WezTerm configuration deployed successfully" -ForegroundColor Green
+    } else {
+        Write-Warning "WezTerm source configuration not found at: $WeztermSourceConfig"
+        Write-Host "You can manually create the configuration later" -ForegroundColor Yellow
+    }
+}
 
 # Windows Auto Night Mode (for automatic light/dark theme switching)
 Install-WingetApp -AppId "Armin2208.WindowsAutoNightMode" -AppName "Windows Auto Night Mode"
@@ -621,7 +652,7 @@ if ($installKomorebi) {
 }
 
 Write-Host "`nAdditional applications installed:"
-Write-Host "  - Development: Visual Studio Code, Docker Desktop"
+Write-Host "  - Development: Visual Studio Code, Docker Desktop, WezTerm"
 Write-Host "  - Productivity: Todoist, Obsidian, Zotero, Notion"
 Write-Host "  - Communication: Discord"
 Write-Host "  - Gaming: Steam"

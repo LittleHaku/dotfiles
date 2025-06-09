@@ -90,6 +90,7 @@
       - bat
       - difftastic
       - yazi
+      - wezterm
       - cleanup
 
     # Update control variables

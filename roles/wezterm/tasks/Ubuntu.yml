@@ -1,0 +1,49 @@
+---
+- name: Install WezTerm (Ubuntu 22.04+)
+  ansible.builtin.apt:
+    deb: https://github.com/wez/wezterm/releases/download/20240203-110809-5046fc22/wezterm-20240203-110809-5046fc22.Ubuntu22.04.deb
+    state: present
+  become: true
+  when: 
+    - ansible_host_environment_is_wsl != "true"
+    - ansible_distribution_version is version('22.04', '>=')
+  ignore_errors: true
+  register: wezterm_deb_install
+
+- name: Install WezTerm (Ubuntu 20.04)
+  ansible.builtin.apt:
+    deb: https://github.com/wez/wezterm/releases/download/20240203-110809-5046fc22/wezterm-20240203-110809-5046fc22.Ubuntu20.04.deb
+    state: present
+  become: true
+  when: 
+    - ansible_host_environment_is_wsl != "true"
+    - ansible_distribution_version is version('20.04', '>=')
+    - ansible_distribution_version is version('22.04', '<')
+  ignore_errors: true
+  register: wezterm_deb_install_focal
+
+- name: Download WezTerm AppImage as fallback
+  ansible.builtin.get_url:
+    url: https://github.com/wez/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-20240203-110809-5046fc22-Ubuntu20.04.AppImage
+    dest: "{{ ansible_env.HOME }}/.local/bin/wezterm"
+    mode: '0755'
+  when:
+    - ansible_host_environment_is_wsl != "true"
+    - (wezterm_deb_install is failed) or (wezterm_deb_install_focal is failed)
+
+- name: Create desktop entry for WezTerm AppImage
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.local/share/applications/wezterm.desktop"
+    content: |
+      [Desktop Entry]
+      Name=WezTerm
+      Comment=GPU-accelerated cross-platform terminal emulator
+      Exec={{ ansible_env.HOME }}/.local/bin/wezterm
+      Icon=org.wezfurlong.wezterm
+      Terminal=false
+      Type=Application
+      Categories=System;TerminalEmulator;
+    mode: '0644'
+  when:
+    - ansible_host_environment_is_wsl != "true"
+    - (wezterm_deb_install is failed) or (wezterm_deb_install_focal is failed)
