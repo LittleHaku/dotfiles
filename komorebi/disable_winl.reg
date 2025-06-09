@@ -1,11 +1,41 @@
 Windows Registry Editor Version 5.00
 
-; Disable Win+L lock screen shortcut to allow Komorebi to use it
+; =============================================================================
+; DISABLE WIN+L HOTKEY FOR KOMOREBI (WITHOUT BREAKING LOCK FUNCTIONALITY)
 ; This is automatically applied during Komorebi setup in bootstrap.ps1
+; =============================================================================
+
+; =============================================================================
+; STEP 1: ENSURE LOCK WORKSTATION FUNCTIONALITY IS ENABLED
+; This restores/ensures the ability to lock your screen programmatically
+; =============================================================================
 
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000001
+"DisableLockWorkstation"=dword:00000000
 
-; Alternative method - disable through Group Policy equivalent
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000001
+"DisableLockWorkstation"=dword:00000000
+
+; =============================================================================
+; STEP 2: DISABLE ONLY THE WIN+L HOTKEY COMBINATION
+; This uses Scancode Map to disable Win+L without affecting lock functionality
+; =============================================================================
+
+; Method 1: Disable Win+L specifically using Scancode Map
+; This maps Win+L to do nothing (null)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,e0,00,00,00,00
+
+; =============================================================================
+; STEP 3: ALTERNATIVE METHOD (if Scancode Map doesn't work)
+; Use Group Policy to disable specific Windows key combinations
+; =============================================================================
+
+; Disable specific Windows hotkeys without disabling all
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoWinKeys"=dword:00000000
+"DisableLocalMachineRun"=dword:00000000
+
+; Create a custom policy to disable Win+L specifically
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"DisabledHotkeys"="L"

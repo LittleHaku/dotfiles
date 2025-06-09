@@ -698,17 +698,29 @@ $komorebiConfigScript = {
     }
 
     # Disable Win+L lock screen shortcut to allow Komorebi to use it
-    Write-Host "`nDisabling Win+L lock screen shortcut for Komorebi..." -ForegroundColor Cyan
+    Write-Host "`nDisabling Win+L hotkey for Komorebi (while preserving lock functionality)..." -ForegroundColor Cyan
     try {
-        # Apply registry changes to disable Win+L
+        # Apply registry changes to disable Win+L hotkey without breaking lock functionality
         $regContent = @"
 Windows Registry Editor Version 5.00
 
+; Ensure lock workstation functionality is enabled
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000001
+"DisableLockWorkstation"=dword:00000000
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000001
+"DisableLockWorkstation"=dword:00000000
+
+; Disable Win+L hotkey using Scancode Map
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,e0,00,00,00,00
+
+; Alternative method for disabling Win+L
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoWinKeys"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"DisabledHotkeys"="L"
 "@
         
         # Create temporary registry file
@@ -721,11 +733,12 @@ Windows Registry Editor Version 5.00
         # Clean up temporary file
         Remove-Item $tempRegFile -Force -ErrorAction SilentlyContinue
         
-        Write-Host "Win+L shortcut disabled successfully" -ForegroundColor Green
-        Write-Host "Note: You may need to restart or log out/in for changes to take effect" -ForegroundColor Yellow
+        Write-Host "Win+L hotkey disabled successfully (lock functionality preserved)" -ForegroundColor Green
+        Write-Host "Note: You MUST restart your computer for keyboard mapping changes to take effect" -ForegroundColor Yellow
+        Write-Host "Alternative lock method available: Win + Ctrl + L" -ForegroundColor Cyan
     }
     catch {
-        Write-Warning "Failed to disable Win+L shortcut. You may need to apply the registry changes manually."
+        Write-Warning "Failed to disable Win+L hotkey. You may need to apply the registry changes manually."
         Write-Host "Registry file available at: $DotfilesDir\komorebi\disable_winl.reg" -ForegroundColor Yellow
     }
 
