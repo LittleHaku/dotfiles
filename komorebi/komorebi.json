@@ -10,7 +10,25 @@
   "border_width": 5,
   "border_offset": -1,
   "theme": {
-    "palette": "Base16",
+    "colours": {
+      "base_00": "#282a36",
+      "base_01": "#363447",
+      "base_02": "#44475a",
+      "base_03": "#6272a4",
+      "base_04": "#9ea8c7",
+      "base_05": "#f8f8f2",
+      "base_06": "#f0f1f4",
+      "base_07": "#ffffff",
+      "base_08": "#ff5555",
+      "base_09": "#ffb86c",
+      "base_0a": "#f1fa8c",
+      "base_0b": "#50fa7b",
+      "base_0c": "#8be9fd",
+      "base_0d": "#80bfff",
+      "base_0e": "#ff79c6",
+      "base_0f": "#bd93f9"
+    },
+    "palette": "Custom",
     "name": "Ashes",
     "unfocused_border": "Base01",
     "bar_accent": "Base03",
@@ -26,9 +44,9 @@
   "transparency_alpha": 240,
   "transparency_ignore_rules": [
     {
-        "kind": "Title",
-        "id": "YouTube",
-        "matching_strategy": "Contains"
+      "kind": "Title",
+      "id": "YouTube",
+      "matching_strategy": "Contains"
     }
   ],
   "monitors": [
