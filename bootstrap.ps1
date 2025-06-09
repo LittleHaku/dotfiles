@@ -466,11 +466,14 @@ if (Test-Path $WslConfigPath) {
     Write-Host ".wslconfig created successfully at: $WslConfigPath" -ForegroundColor Green
 }
 
-Write-Host "`nDo you want to view/edit the WSL configuration file? (y/n)" -ForegroundColor Cyan
-$editConfig = Get-YesNoInput "Do you want to view/edit the WSL configuration file? (y/n)"
-if ($editConfig -eq "y") {
-    Write-Host "Opening .wslconfig in Notepad..." -ForegroundColor Yellow
-    Start-Process notepad $WslConfigPath -Wait
+# Only prompt to open the config in interactive mode
+if (-not $CurrentMode) {
+    Write-Host "`nDo you want to view/edit the WSL configuration file? (y/n)" -ForegroundColor Cyan
+    $editConfig = Get-YesNoInput "Do you want to view/edit the WSL configuration file? (y/n)"
+    if ($editConfig -eq "y") {
+        Write-Host "Opening .wslconfig in Notepad..." -ForegroundColor Yellow
+        Start-Process notepad $WslConfigPath -Wait
+    }
 }
 
 #------------------------------------------------
