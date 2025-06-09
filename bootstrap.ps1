@@ -134,17 +134,13 @@ if ($currentGitUserName -and $currentGitEmail) {
 # DOTFILES SETUP
 #------------------------------------------------
 Show-SectionHeader "Dotfiles Setup"
-Write-Host "Cloning dotfiles repository..." -ForegroundColor Cyan
+Write-Host "Cloning or updating dotfiles repository..." -ForegroundColor Cyan
 if (Test-Path -Path $DotfilesDir) {
-    Write-Host "`nDotfiles directory already exists at $DotfilesDir" -ForegroundColor Yellow
-    $overwrite = Read-Host "Do you want to overwrite it? (y/n)"
-    if ($overwrite -eq "y") {
-        Remove-Item -Path $DotfilesDir -Recurse -Force
-        git clone $DotfilesRepo $DotfilesDir
-        Write-Host "`nDotfiles repository cloned successfully" -ForegroundColor Green
-    } else {
-        Write-Host "`nSkipping cloning operation" -ForegroundColor Yellow
-    }
+    Write-Host "`nDotfiles directory already exists at $DotfilesDir, pulling latest changes..." -ForegroundColor Yellow
+    Push-Location $DotfilesDir
+    git pull
+    Pop-Location
+    Write-Host "`nDotfiles repository updated successfully" -ForegroundColor Green
 } else {
     git clone $DotfilesRepo $DotfilesDir
     Write-Host "`nDotfiles repository cloned successfully" -ForegroundColor Green
