@@ -21,11 +21,13 @@ if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
 	-- Windows-specific launch options
 	table.insert(launch_menu, {
 		label = 'PowerShell',
+		domain = { DomainName = "local" },
 		args = { 'powershell.exe', '-NoLogo' },
 	})
 
 	table.insert(launch_menu, {
 		label = 'PowerShell Admin',
+		domain = { DomainName = "local" },
 		args = { 'powershell.exe', '-NoLogo', '-Command', 'Start-Process powershell -Verb RunAs' },
 	})
 
