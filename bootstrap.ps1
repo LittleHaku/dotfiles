@@ -36,6 +36,12 @@ function Test-WingetApp {
         if ($LASTEXITCODE -eq 0) {
             return $true
         }
+        # Special case: detect Tor Browser portable installation
+        if ($AppId -eq 'TorProject.TorBrowser') {
+            if (Test-Path "$env:LOCALAPPDATA\Programs\Tor Browser\Browser\firefox.exe") {
+                return $true
+            }
+        }
         return $false
     } catch {
         return $false
