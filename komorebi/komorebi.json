@@ -25,13 +25,13 @@
       "base_0b": "#ebff87",
       "base_0c": "#8be9fd",
       "base_0d": "#62d6e8",
-      "base_0e": "#b45bcf",
+      "base_0e": "#B586F8",
       "base_0f": "#00f769"
     },
     "palette": "Custom",
     "unfocused_border": "Base01",
     "bar_accent": "Base07",
-    "single_border": "Base03"
+    "single_border": "Base0E"
   },
   "animation": {
     "enabled": true,
