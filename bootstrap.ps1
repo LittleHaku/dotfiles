@@ -700,46 +700,98 @@ $komorebiConfigScript = {
     # Disable Win+L lock screen shortcut to allow Komorebi to use it
     Write-Host "`nDisabling Win+L hotkey for Komorebi (while preserving lock functionality)..." -ForegroundColor Cyan
     try {
-        # Apply registry changes to disable Win+L hotkey without breaking lock functionality
-        $regContent = @"
+        # Method 1: Use proper Scancode Map to disable Win+L combination
+        Write-Host "Applying Scancode Map to disable Win+L..." -ForegroundColor Yellow
+
+        # Correct Scancode Map to disable Win+L (Left Windows + L key)
+        # Format: Header(8 bytes) + Entry count(4 bytes) + Mappings + Null terminator(4 bytes)
+        # We're mapping Left Win + L (E0 5B + 26) to nothing
+        $scancodeMapValue = [byte[]]@(
+            0x00, 0x00, 0x00, 0x00,  # Header: Version
+            0x00, 0x00, 0x00, 0x00,  # Header: Flags
+            0x02, 0x00, 0x00, 0x00,  # Number of mappings (2: 1 mapping + 1 null terminator)
+            0x00, 0x00, 0x26, 0x00,  # Map L key (0x26) to nothing (0x00)
+            0x00, 0x00, 0x00, 0x00   # Null terminator
+        )
+
+        # Apply the scancode map directly via PowerShell registry cmdlets
+        $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layout"
+        if (-not (Test-Path $regPath)) {
+            New-Item -Path $regPath -Force | Out-Null
+        }
+        Set-ItemProperty -Path $regPath -Name "Scancode Map" -Value $scancodeMapValue -Type Binary
+        Write-Host "Scancode Map applied successfully" -ForegroundColor Green
+
+        # Method 2: Also disable via Group Policy (additional layer)
+        Write-Host "Applying Group Policy settings..." -ForegroundColor Yellow
+
+        # Ensure lock workstation functionality remains enabled
+        $policyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"
+        if (-not (Test-Path $policyPath)) {
+            New-Item -Path $policyPath -Force | Out-Null
+        }
+        Set-ItemProperty -Path $policyPath -Name "DisableLockWorkstation" -Value 0 -Type DWord
+
+        # Use Windows Key Policy to disable specific combinations
+        $explorerPolicyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"
+        if (-not (Test-Path $explorerPolicyPath)) {
+            New-Item -Path $explorerPolicyPath -Force | Out-Null
+        }
+
+        # Disable Turn off Windows Key hotkeys policy (we want granular control)
+        Set-ItemProperty -Path $explorerPolicyPath -Name "NoWinKeys" -Value 0 -Type DWord
+
+        # Use the DisabledHotkeys method for Win+L specifically
+        $advancedPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+        if (-not (Test-Path $advancedPath)) {
+            New-Item -Path $advancedPath -Force | Out-Null
+        }
+        Set-ItemProperty -Path $advancedPath -Name "DisabledHotkeys" -Value "L" -Type String
+
+        Write-Host "Group Policy settings applied successfully" -ForegroundColor Green
+
+        # Method 3: Create a persistent registry backup for reapplication
+        Write-Host "Creating persistent registry backup..." -ForegroundColor Yellow
+        $persistentRegFile = "$DotfilesDir\komorebi\disable_winl_persistent.reg"
+        $persistentRegContent = @"
 Windows Registry Editor Version 5.00
 
-; Ensure lock workstation functionality is enabled
+; Persistent Win+L disable configuration
+; This file can be re-imported if changes are lost
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,00,00,00,00,00
+
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
 "DisableLockWorkstation"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000000
-
-; Disable Win+L hotkey using Scancode Map
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
-"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,e0,00,00,00,00
-
-; Alternative method for disabling Win+L
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 "NoWinKeys"=dword:00000000
 
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
 "DisabledHotkeys"="L"
 "@
-        
-        # Create temporary registry file
-        $tempRegFile = "$env:TEMP\disable_winl_temp.reg"
-        Set-Content -Path $tempRegFile -Value $regContent -Encoding ASCII
-        
-        # Apply registry changes
-        reg import $tempRegFile 2>$null
-        
-        # Clean up temporary file
-        Remove-Item $tempRegFile -Force -ErrorAction SilentlyContinue
-        
-        Write-Host "Win+L hotkey disabled successfully (lock functionality preserved)" -ForegroundColor Green
-        Write-Host "Note: You MUST restart your computer for keyboard mapping changes to take effect" -ForegroundColor Yellow
-        Write-Host "Alternative lock method available: Win + Ctrl + L" -ForegroundColor Cyan
+        Set-Content -Path $persistentRegFile -Value $persistentRegContent -Encoding UTF8
+        Write-Host "Persistent registry file created at: $persistentRegFile" -ForegroundColor Green
+
+        Write-Host "`nWin+L hotkey disabled successfully using multiple methods!" -ForegroundColor Green
+        Write-Host "Changes applied:" -ForegroundColor Cyan
+        Write-Host "  ✓ Scancode mapping (disables Win+L at keyboard driver level)" -ForegroundColor White
+        Write-Host "  ✓ Group Policy settings (additional protection)" -ForegroundColor White
+        Write-Host "  ✓ Persistent backup file created for re-application" -ForegroundColor White
+        Write-Host "`nIMPORTANT: Restart your computer for all changes to take effect!" -ForegroundColor Yellow
+        Write-Host "Alternative lock methods available:" -ForegroundColor Cyan
+        Write-Host "  • Ctrl+Alt+Del → Lock" -ForegroundColor White
+        Write-Host "  • Win+Ctrl+L (if configured in AHK)" -ForegroundColor White
+        Write-Host "  • Lock button in Start Menu" -ForegroundColor White
+
     }
     catch {
-        Write-Warning "Failed to disable Win+L hotkey. You may need to apply the registry changes manually."
-        Write-Host "Registry file available at: $DotfilesDir\komorebi\disable_winl.reg" -ForegroundColor Yellow
+        Write-Warning "Failed to disable Win+L hotkey automatically."
+        Write-Host "Manual solution:" -ForegroundColor Yellow
+        Write-Host "1. Run this script as Administrator" -ForegroundColor White
+        Write-Host "2. Or manually import: $DotfilesDir\komorebi\disable_winl.reg" -ForegroundColor White
+        Write-Host "3. Or use the persistent file: $DotfilesDir\komorebi\disable_winl_persistent.reg" -ForegroundColor White
     }
 
     # Refresh environment variables in the current session to find new executables

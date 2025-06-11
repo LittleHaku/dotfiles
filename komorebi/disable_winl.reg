@@ -22,9 +22,10 @@ Windows Registry Editor Version 5.00
 ; =============================================================================
 
 ; Method 1: Disable Win+L specifically using Scancode Map
-; This maps Win+L to do nothing (null)
+; This maps the L key to do nothing when pressed with Windows key
+; Correct format: 00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,00,00,00,00,00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
-"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,e0,00,00,00,00
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,00,00,00,00,00
 
 ; =============================================================================
 ; STEP 3: ALTERNATIVE METHOD (if Scancode Map doesn't work)

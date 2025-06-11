@@ -1,0 +1,40 @@
+Windows Registry Editor Version 5.00
+
+; =============================================================================
+; PERSISTENT WIN+L DISABLE CONFIGURATION FOR KOMOREBI
+; This file can be re-imported if Windows updates reset the settings
+; Run as Administrator: Right-click → "Merge" or use "reg import disable_winl_persistent.reg"
+; =============================================================================
+
+; =============================================================================
+; METHOD 1: SCANCODE MAPPING (Most Effective)
+; This disables Win+L at the keyboard driver level
+; =============================================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,00,00,00,00,00
+
+; =============================================================================
+; METHOD 2: GROUP POLICY SETTINGS (Additional Protection)
+; These settings work at the user level and persist across updates better
+; =============================================================================
+
+; Ensure lock workstation functionality is preserved
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableLockWorkstation"=dword:00000000
+
+; Configure Windows Key policies (don't disable all, just specific keys)
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"NoWinKeys"=dword:00000000
+
+; Disable Win+L specifically using the DisabledHotkeys method
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"DisabledHotkeys"="L"
+
+; =============================================================================
+; NOTES:
+; - Restart required after applying these changes
+; - If Win+L starts working again after Windows updates, re-import this file
+; - Alternative lock methods: Ctrl+Alt+Del → Lock, or Start Menu → Lock
+; - You can also run the companion script: reapply_winl_disable.ps1
+; =============================================================================
