@@ -13,7 +13,7 @@ lwin + o                : taskkill /f /im whkd.exe; Start-Process whkd -WindowSt
 lwin + shift + o        : komorebic reload-configuration
 
 # Lock workstation (alternative to Win+L which is disabled for Komorebi)
-lwin + ctrl + l         : rundll32.exe user32.dll,LockWorkStation
+lwin + ctrl + l         : tsdiscon
 
 # -----------------------------------------------------------------------------
 # Window Management
