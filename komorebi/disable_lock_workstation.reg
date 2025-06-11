@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; Disable Lock Workstation (Win+L) to prevent conflicts with whkdrc
+; This creates the registry entry at:
+; HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System
+; 
+; DisableLockWorkstation = 1 (DWORD 32-bit)
+;
+; This will take effect immediately and prevents Win+L from locking the workstation
+; allowing whkdrc to use "lwin + l" for window focus management
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableLockWorkstation"=dword:00000001

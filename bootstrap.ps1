@@ -698,48 +698,25 @@ $komorebiConfigScript = {
     }
 
     # Disable Win+L lock screen shortcut to allow Komorebi to use it
-    Write-Host "`nDisabling Win+L hotkey for Komorebi (while preserving lock functionality)..." -ForegroundColor Cyan
+    Write-Host "`nDisabling Win+L lock workstation to prevent conflicts with Komorebi..." -ForegroundColor Cyan
     try {
-        # Apply registry changes to disable Win+L hotkey without breaking lock functionality
-        $regContent = @"
-Windows Registry Editor Version 5.00
-
-; Ensure lock workstation functionality is enabled
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000000
-
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"DisableLockWorkstation"=dword:00000000
-
-; Disable Win+L hotkey using Scancode Map
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
-"Scancode Map"=hex:00,00,00,00,00,00,00,00,02,00,00,00,00,00,26,e0,00,00,00,00
-
-; Alternative method for disabling Win+L
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"NoWinKeys"=dword:00000000
-
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"DisabledHotkeys"="L"
-"@
+        # Apply the simple registry change to disable lock workstation
+        $regFile = "$DotfilesDir\komorebi\disable_lock_workstation.reg"
         
-        # Create temporary registry file
-        $tempRegFile = "$env:TEMP\disable_winl_temp.reg"
-        Set-Content -Path $tempRegFile -Value $regContent -Encoding ASCII
-        
-        # Apply registry changes
-        reg import $tempRegFile 2>$null
-        
-        # Clean up temporary file
-        Remove-Item $tempRegFile -Force -ErrorAction SilentlyContinue
-        
-        Write-Host "Win+L hotkey disabled successfully (lock functionality preserved)" -ForegroundColor Green
-        Write-Host "Note: You MUST restart your computer for keyboard mapping changes to take effect" -ForegroundColor Yellow
-        Write-Host "Alternative lock method available: Win + Ctrl + L" -ForegroundColor Cyan
+        if (Test-Path $regFile) {
+            # Import the registry file
+            reg import $regFile 2>$null
+            Write-Host "Win+L lock workstation disabled successfully" -ForegroundColor Green
+            Write-Host "This allows Komorebi to use Win+L for window focusing" -ForegroundColor Cyan
+            Write-Host "Alternative lock method available via whkdrc: Win+Ctrl+L" -ForegroundColor Cyan
+        } else {
+            Write-Warning "Registry file not found at: $regFile"
+            Write-Host "You may need to disable Win+L manually for optimal Komorebi experience" -ForegroundColor Yellow
+        }
     }
     catch {
-        Write-Warning "Failed to disable Win+L hotkey. You may need to apply the registry changes manually."
-        Write-Host "Registry file available at: $DotfilesDir\komorebi\disable_winl.reg" -ForegroundColor Yellow
+        Write-Warning "Failed to disable Win+L lock workstation. You may need to apply the registry changes manually."
+        Write-Host "Registry file available at: $DotfilesDir\komorebi\disable_lock_workstation.reg" -ForegroundColor Yellow
     }
 
     # Refresh environment variables in the current session to find new executables
